@@ -9,6 +9,7 @@ import type {
 import type {WithTimeoutArg, WithTimeoutOptions} from './types';
 
 import {mergeRequestOptions} from '../utils';
+
 import {
   asOptions,
   clampMin,

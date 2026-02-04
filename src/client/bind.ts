@@ -7,9 +7,10 @@ import type {
   RequestRoute,
 } from '../types';
 
+import {applyConfigToOptions, normalizeRequestOptions} from '../utils';
+
 import {endpoint} from './endpoint';
 import {request} from './request';
-import {applyConfigToOptions, normalizeRequestOptions} from '../utils';
 
 type BindInput = {
   baseUrl: string;

@@ -7,8 +7,9 @@ import type {
   ResponseData,
 } from '../types';
 
-import {endpoint} from './endpoint';
 import {normalizeHeaders, normalizeRequestOptions} from '../utils';
+
+import {endpoint} from './endpoint';
 
 const isAbortError = (error: unknown): boolean => {
   if (!error || typeof error !== 'object') {
@@ -48,7 +49,7 @@ const parseResponseData = async (response: Response, parseBody: boolean): Promis
   if (shouldParseJson(contentType)) {
     try {
       return await response.json();
-    } catch (error) {
+    } catch {
       return await response.text();
     }
   }

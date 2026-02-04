@@ -1,7 +1,8 @@
 import type {HttpClient, HttpOptions} from '../types';
 
-import {bind} from './bind';
 import {mergeConfig} from '../utils';
+
+import {bind} from './bind';
 
 /**
  * Create a base HTTP client with the provided options.
