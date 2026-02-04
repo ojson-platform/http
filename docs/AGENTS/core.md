@@ -16,12 +16,19 @@ keeping configuration merge rules explicit and deterministic.
 
 ### Client Factory (`http`)
 
-`http(options)` creates a base client bound to an endpoint and optional default
-configuration. The client exposes:
+`http(options)` creates a base client (factory output). To ensure `ctx` is always
+available to wrappers, the base client only exposes:
 
-- `endpoint(route, options)` – build a request descriptor.
-- `request(route, options)` – execute a request using `fetch`.
-- `bind(ctx, config)` – return a new client bound to context/config.
+- `bind(ctx, config?)` – return a new client bound to context/config.
+
+See ADR: `docs/ADR/0001-require-bind.md`.
+
+### Bound Client (`client.bind(ctx, config)`)
+
+`bind()` returns a **bound client** which exposes:
+
+- `endpoint(route, options?)` – build a request descriptor (pure).
+- `request(route, options?)` – execute a request using `fetch`.
 
 ### Endpoint Construction (`endpoint`)
 
@@ -50,6 +57,20 @@ Configuration merges are immutable and deterministic:
 - `undefined` values are removed before merge,
 - nested objects are deep-merged,
 - precedence is: `withDefaults` → `bind(config)` → `request(options)`.
+
+See ADRs:
+
+- `docs/ADR/0005-multi-value-headers.md` (multi-value headers)
+- `docs/ADR/0007-timeout-mechanism-vs-policy.md` (timeout vs policy)
+
+### Composition (`compose`)
+
+The recommended extensibility mechanism is functional composition:
+
+- `compose(http, withAuth(...), withTimeout(...), withRetry(...), withTracing(...))`
+
+Wrappers must preserve the core semantics while enriching behavior.
+See ADR: `docs/ADR/0003-compose-http-client.md`.
 
 ## Architecture Notes (Core)
 

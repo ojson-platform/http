@@ -20,7 +20,7 @@ including tools, workflows, and local commands.
 - **Framework**: Vitest
 - **Command**: `npm run test:units:fast`
 - **Test files**: `**/*.spec.ts`
-- **Coverage**: `@vitest/coverage-v8`
+- **Coverage**: configured via `vitest.config.ts` (V8 provider)
 
 ### Type Checks
 
@@ -71,7 +71,7 @@ including tools, workflows, and local commands.
 
 - `src/` - Main source code
   - `src/client/` - Core HTTP client implementation
-  - `src/with-*/` - Helper modules (planned)
+  - `src/with-*/` - Helper modules
 
 ### Tests
 
