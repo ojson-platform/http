@@ -11,9 +11,9 @@ Composable HTTP client core for the ojson platform.
 
 ## Overview
 
-`@ojson/http` provides a small core for building HTTP clients that can be extended
-via composition. The design goal is a predictable request pipeline that can be
-used manually and as a transport layer for higher-level generators (e.g. OpenAPI).
+`@ojson/http` provides a minimal HTTP client core plus a set of composable helpers.
+The design goal is a predictable request pipeline that can be used manually and
+as a transport layer for higher-level generators (e.g. OpenAPI).
 
 **Core principle**: call `client.bind(ctx, config)` first. A bound client has
 all the methods needed to build and execute requests, and wrappers can rely on
