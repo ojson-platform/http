@@ -117,7 +117,6 @@ export class RequestError extends Error implements RequestErrorShape {
     if (input.cause) {
       (this as Error & {cause?: unknown}).cause = input.cause;
     }
-
   }
 }
 

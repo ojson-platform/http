@@ -1,4 +1,11 @@
-import type {EndpointOptions, HeaderValue, HeadersInput, HeadersMap, HttpConfig, RequestOptions} from './types';
+import type {
+  EndpointOptions,
+  HeaderValue,
+  HeadersInput,
+  HeadersMap,
+  HttpConfig,
+  RequestOptions,
+} from './types';
 
 /**
  * Check if value is a plain object.
@@ -22,11 +29,7 @@ const normalizeHeaderKey = (key: string): string => key.toLowerCase();
 /**
  * Normalize header keys to lowercase.
  */
-const appendHeaderValue = (
-  acc: HeadersMap,
-  key: string,
-  value: HeaderValue,
-): void => {
+const appendHeaderValue = (acc: HeadersMap, key: string, value: HeaderValue): void => {
   const nextValues = Array.isArray(value) ? value : [value];
   const existing = acc[key];
   if (existing === undefined) {
@@ -135,9 +138,7 @@ const mergeHeaders = (base?: HeadersMap, next?: HeadersMap): HeadersMap => {
 /**
  * Normalize request options by removing undefined values.
  */
-const normalizeRequestOptions = (
-  options?: RequestOptions | EndpointOptions,
-): RequestOptions => {
+const normalizeRequestOptions = (options?: RequestOptions | EndpointOptions): RequestOptions => {
   if (!options) {
     return {};
   }

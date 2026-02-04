@@ -10,12 +10,11 @@ type WithAuthClient<CTX> = HttpClient<CTX> & {
   [__AuthStrategy__]?: AuthStrategy<unknown>;
 };
 
-const wrapRequest =
-  <CTX>(
-    request: BoundHttpClient['request'],
-    strategy: AuthStrategy<CTX>,
-    ctx: CTX,
-  ) =>
+const wrapRequest = <CTX>(
+  request: BoundHttpClient['request'],
+  strategy: AuthStrategy<CTX>,
+  ctx: CTX,
+) =>
   async function (this: BoundHttpClient, route: RequestRoute, options?: RequestOptions) {
     const auth = await strategy(ctx as CTX);
     const next = mergeRequestOptions(options ?? {}, auth ?? {});
@@ -27,11 +26,7 @@ const wrapBind = <CTX>(bind: HttpClient<CTX>['bind']) =>
     const bound = bind.call(this, ctx, config);
     return {
       ...bound,
-      request: wrapRequest(
-        bound.request,
-        this[__AuthStrategy__] as AuthStrategy<CTX>,
-        ctx,
-      ),
+      request: wrapRequest(bound.request, this[__AuthStrategy__] as AuthStrategy<CTX>, ctx),
     };
   };
 

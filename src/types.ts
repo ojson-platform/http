@@ -128,6 +128,14 @@ export type HttpWrapper<CTX = unknown> = (client: HttpClient<CTX>) => HttpClient
  * HTTP client bound to a config.
  */
 export type BoundHttpClient = {
-  request: (this: BoundHttpClient, route: RequestRoute, options?: RequestOptions) => Promise<ResponseData>;
-  endpoint: (this: BoundHttpClient, route: RequestRoute, options?: EndpointOptions) => EndpointResult;
+  request: (
+    this: BoundHttpClient,
+    route: RequestRoute,
+    options?: RequestOptions,
+  ) => Promise<ResponseData>;
+  endpoint: (
+    this: BoundHttpClient,
+    route: RequestRoute,
+    options?: EndpointOptions,
+  ) => EndpointResult;
 };

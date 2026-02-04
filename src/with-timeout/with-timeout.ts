@@ -26,8 +26,11 @@ type WithTimeoutClient = HttpClient & {
   [__WithTimeout__]?: WithTimeoutOptions;
 };
 
-const wrapRequest =
-  (request: BoundHttpClient['request'], ctx: unknown, options: WithTimeoutOptions) =>
+const wrapRequest = (
+  request: BoundHttpClient['request'],
+  ctx: unknown,
+  options: WithTimeoutOptions,
+) =>
   async function (this: BoundHttpClient, route: RequestRoute, requestOptions?: RequestOptions) {
     const resolved: WithTimeoutOptions = {...DEFAULT_WITH_TIMEOUT_OPTIONS, ...options};
 
@@ -43,9 +46,14 @@ const wrapRequest =
     }
 
     const nextTimeout = computed.timeout;
-    let next = mergeRequestOptions(requestOptions ?? {}, nextTimeout === undefined ? {} : {timeout: nextTimeout});
+    let next = mergeRequestOptions(
+      requestOptions ?? {},
+      nextTimeout === undefined ? {} : {timeout: nextTimeout},
+    );
 
-    const headerConfig = resolved.deadlineHeader ? parseDeadlineHeader(resolved.deadlineHeader) : undefined;
+    const headerConfig = resolved.deadlineHeader
+      ? parseDeadlineHeader(resolved.deadlineHeader)
+      : undefined;
     if (headerConfig && computed.deadlineMs !== undefined) {
       const remaining = clampMin(
         computed.deadlineMs - Date.now(),
@@ -109,4 +117,3 @@ export const withTimeout =
 
     return wrapped;
   };
-

@@ -1,5 +1,10 @@
 import type {HeadersMap, RequestOptions} from '../types';
-import type {DeadlineHeaderConfig, DeadlineHeaderMode, WithTimeoutArg, WithTimeoutOptions} from './types';
+import type {
+  DeadlineHeaderConfig,
+  DeadlineHeaderMode,
+  WithTimeoutArg,
+  WithTimeoutOptions,
+} from './types';
 
 import {hasHeader, isObject, mergeRequestOptions} from '../utils';
 
@@ -22,9 +27,7 @@ export const asOptions = (arg?: WithTimeoutArg): WithTimeoutOptions => {
   return arg;
 };
 
-export const parseDeadlineHeader = (
-  value: string | DeadlineHeaderConfig,
-): DeadlineHeaderConfig => {
+export const parseDeadlineHeader = (value: string | DeadlineHeaderConfig): DeadlineHeaderConfig => {
   if (typeof value !== 'string') {
     return value;
   }
@@ -119,4 +122,3 @@ export const withDeadlineHeader = (
   const headers: HeadersMap = {[name]: value};
   return mergeRequestOptions(requestOptions, {headers});
 };
-

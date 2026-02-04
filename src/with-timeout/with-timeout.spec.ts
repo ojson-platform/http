@@ -6,7 +6,7 @@ import {withTimeout} from './with-timeout';
 
 const createClient = (requestImpl?: BoundHttpClient['request']): HttpClient => {
   const request =
-    requestImpl ?? (async () => ({status: 200, url: '', headers: {}, data: null} as ResponseData));
+    requestImpl ?? (async () => ({status: 200, url: '', headers: {}, data: null}) as ResponseData);
 
   return {
     bind: vi.fn(() => ({
@@ -112,4 +112,3 @@ describe('withTimeout', () => {
     vi.useRealTimers();
   });
 });
-
