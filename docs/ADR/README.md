@@ -5,3 +5,4 @@
 - [0003 Compose for http client](./0003-compose-http-client.md)
 - [0004 HttpClient is generic over ctx](./0004-httpclient-ctx-generic.md)
 - [0005 Support multi-value headers](./0005-multi-value-headers.md)
+- [0006 Add retry budget](./0006-retry-budget.md)

@@ -171,7 +171,6 @@ const applyConfigToOptions = (options: RequestOptions, config?: HttpConfig): Req
     ...options,
     headers: mergeHeaders(normalizeHeaders(config.headers), normalizeHeaders(options.headers)),
     timeout: options.timeout ?? config.timeout,
-    retries: options.retries ?? config.retries,
   };
 };
 
@@ -186,7 +185,6 @@ const mergeConfig = (base?: HttpConfig, next?: HttpConfig): HttpConfig | undefin
   return {
     headers: mergeHeaders(normalizeHeaders(base?.headers), normalizeHeaders(next?.headers)),
     timeout: next?.timeout ?? base?.timeout,
-    retries: next?.retries ?? base?.retries,
   };
 };
 

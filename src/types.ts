@@ -91,7 +91,6 @@ export type RequestErrorShape = {
 export type HttpConfig = {
   headers?: HeadersInput;
   timeout?: number;
-  retries?: number | number[];
 };
 
 /**

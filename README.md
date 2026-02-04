@@ -133,7 +133,6 @@ type HeadersInput = HeadersMap | [string, string][];
 type HttpConfig = {
   headers?: HeadersInput;
   timeout?: number;
-  retries?: number | number[];
 };
 
 type HttpOptions = {
