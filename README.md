@@ -123,6 +123,14 @@ Auth strategy wrapper that enriches request options based on `ctx`.
 
 Timeout defaults, deadline clamping (`ctx.deadline`), and optional deadline header propagation.
 
+### [withTracing](./src/with-tracing/readme.md)
+
+Correlation id propagation (`x-request-id`).
+
+### [withRetry](./src/with-retry/readme.md)
+
+Retry policies with backoff, jitter, Retry-After, and optional retry budget.
+
 ## Configuration
 
 ```ts
