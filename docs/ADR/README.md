@@ -6,3 +6,4 @@
 - [0004 HttpClient is generic over ctx](./0004-httpclient-ctx-generic.md)
 - [0005 Support multi-value headers](./0005-multi-value-headers.md)
 - [0006 Add retry budget](./0006-retry-budget.md)
+- [0007 Timeout mechanism vs withTimeout policy](./0007-timeout-mechanism-vs-policy.md)
