@@ -111,6 +111,7 @@ export const withTimeout =
   (arg?: WithTimeoutArg): HttpWrapper =>
   (client: HttpClient): HttpClient => {
     const wrapped: WithTimeoutClient = {
+      ...client,
       bind: __WithTimeout__ in client ? client.bind : wrapBind(client.bind),
       [__WithTimeout__]: asOptions(arg),
     };

@@ -326,6 +326,7 @@ export const withLogger =
   <CTX>(options: LoggerOptions<CTX> = {}): HttpWrapper<CTX> =>
   (client: HttpClient<CTX>): HttpClient<CTX> => {
     const wrapped: WithLoggerClient<CTX> = {
+      ...client,
       bind: __WithLogger__ in client ? client.bind : wrapBind(client.bind),
       [__WithLogger__]: options as LoggerOptions<unknown>,
     };

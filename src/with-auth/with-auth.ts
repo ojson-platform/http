@@ -71,6 +71,7 @@ export const withAuth =
   <CTX>(strategy: AuthStrategy<CTX>): HttpWrapper<CTX> =>
   (client: HttpClient<CTX>): HttpClient<CTX> => {
     const wrapped: WithAuthClient<CTX> = {
+      ...client,
       bind: __AuthStrategy__ in client ? client.bind : wrapBind<CTX>(client.bind),
       [__AuthStrategy__]: strategy as AuthStrategy<unknown>,
     };

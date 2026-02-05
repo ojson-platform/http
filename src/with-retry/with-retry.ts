@@ -193,6 +193,7 @@ export const withRetry =
   (policy: RetryPolicy = {}): HttpWrapper =>
   (client: HttpClient): HttpClient => {
     const wrapped: WithRetryClient = {
+      ...client,
       bind: __WithRetry__ in client ? client.bind : wrapBind(client.bind),
       [__WithRetry__]: policy,
     };

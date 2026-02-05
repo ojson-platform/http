@@ -51,6 +51,7 @@ export const withTracing =
   (opts: TracingOptions = {}): HttpWrapper =>
   (client: HttpClient): HttpClient => {
     const wrapped: WithTracingClient = {
+      ...client,
       bind: __WithTracing__ in client ? client.bind : wrapBind(client.bind),
       [__WithTracing__]: opts,
     };
