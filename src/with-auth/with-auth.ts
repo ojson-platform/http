@@ -1,5 +1,12 @@
-import type {BoundHttpClient, HttpClient, HttpConfig, RequestOptions, RequestRoute} from '../types';
-import type {AuthStrategy, HttpWrapper} from './types';
+import type {
+  BoundHttpClient,
+  HttpClient,
+  HttpConfig,
+  HttpWrapper,
+  RequestOptions,
+  RequestRoute,
+} from '../types';
+import type {AuthStrategy} from './types';
 
 import {mergeRequestOptions} from '../utils';
 

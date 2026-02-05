@@ -127,6 +127,10 @@ Timeout defaults, deadline clamping (`ctx.deadline`), and optional deadline head
 
 Correlation id propagation (`x-request-id`).
 
+### [withLogger](./src/with-logger/readme.md)
+
+Structured request/response/error logging with redaction.
+
 ### [withRetry](./src/with-retry/readme.md)
 
 Retry policies with backoff, jitter, Retry-After, and optional retry budget.

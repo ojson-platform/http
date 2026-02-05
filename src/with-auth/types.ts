@@ -1,4 +1,4 @@
-import type {HttpWrapper, RequestOptions} from '../types';
+import type {RequestOptions} from '../types';
 
 /**
  * Auth strategy signature.
@@ -6,8 +6,3 @@ import type {HttpWrapper, RequestOptions} from '../types';
 export type AuthStrategy<CTX> = (
   ctx: CTX,
 ) => RequestOptions | Promise<RequestOptions | void> | void;
-
-/**
- * Wrapper signature for HTTP client extensions.
- */
-export type {HttpWrapper};

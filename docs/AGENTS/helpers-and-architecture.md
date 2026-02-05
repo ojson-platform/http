@@ -17,6 +17,7 @@ Implemented helpers live under `src/with-*` and are exported from `src/index.ts`
 - `withRetry` – retry policies with backoff/jitter and optional retry budget.
   See ADR: `docs/ADR/0006-retry-budget.md`.
 - `withTracing` – correlation id propagation (e.g. `x-request-id`) resolved via `getId(ctx)`.
+- `withLogger` – structured request/response/error logging with redaction.
 
 ### Helper module structure
 
