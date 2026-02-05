@@ -25,9 +25,7 @@ import {withAuth} from '@ojson/http';
 ```ts
 import {compose, http, withAuth} from '@ojson/http';
 
-type AuthCtx = {token: string};
-
-const client = compose<AuthCtx>(
+const client = compose(
   http,
   withAuth(ctx => ({
     headers: {authorization: `Bearer ${ctx.token}`},
@@ -36,6 +34,8 @@ const client = compose<AuthCtx>(
 
 await client.bind({token: 'secret'}).request('GET /lists');
 ```
+
+The `ctx` type is inferred from the strategy, so `ctx.token` and `bind({token: 'secret'})` are correctly typed.
 
 ## Advanced Usage
 

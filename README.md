@@ -135,20 +135,14 @@ import {compose, http, withAuth} from '@ojson/http';
 const client = compose(
   http,
   withAuth(async ctx => ({
-    headers: {authorization: `Bearer ${ctx?.token ?? ''}`},
+    headers: {authorization: `Bearer ${ctx.token}`},
   })),
-)({
-  endpoint: 'https://api.example.com',
-});
+)({endpoint: 'https://api.example.com'});
 
-// ctx type is inferred from wrappers
-type AuthCtx = {token: string};
-const typed = compose<AuthCtx>(http, withAuth(async ctx => ({
-  headers: {authorization: `Bearer ${ctx.token}`},
-})))({endpoint: 'https://api.example.com'});
-
-await typed.bind({token: 'secret'}).request('GET /lists');
+await client.bind({token: 'secret'}).request('GET /lists');
 ```
+
+The `ctx` type is inferred from the wrappers, so `bind({token: 'secret'})` and `ctx.token` are correctly typed.
 
 ## Modules
 
