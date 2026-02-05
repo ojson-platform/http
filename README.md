@@ -55,35 +55,48 @@ const result = await client.bind({}).request('GET /lists', {
 `http(options)` returns a client with a single method: `bind(ctx, config)`. The
 result of `bind` is a `BoundHttpClient` with:
 
-- `bound.endpoint(route, options)` → `{method, url, headers, body}`
-- `bound.request(route, options)` → `{status, url, headers, data}`
+- `bound.endpoint(route, options?)` → `{method, url, headers, body}` (build only)
+- `bound.request(route, options?)` → `{status, url, headers, data}` (execute request)
+
+`bind` is required before any request so that wrappers can rely on `ctx` being
+available. For timeout defaults and deadline propagation, see
+[withTimeout](./src/with-timeout/readme.md).
 
 ### Standalone building/execution
 
-You can also use `endpoint(route, options)` and `request(route, options)` as
+You can use `endpoint(route, options)` and `request(route, options)` as
 standalone functions (exported from `@ojson/http`), but the recommended path is
 through a bound client.
 
-### Timeout: mechanism vs policy
+### Request options (route + options)
 
-This package supports `RequestOptions.timeout` in the core request implementation
-as a **mechanism**: it is converted into an abort signal and combined with any
-external `AbortSignal`, and timers are always cleaned up.
+**Route** is either a string `"METHOD /path"` or `{ method, url }`. The path
+may contain placeholders `{name}`; they are replaced using `options.params`.
 
-The `withTimeout` helper provides a **policy layer** on top:
+**Options** (second argument to `endpoint()` / `request()`) are typed as
+`EndpointOptions` for building and `RequestOptions` for execution. Main fields:
 
-- applying a default timeout when none is set
-- clamping the effective timeout by `ctx.deadline`
-- propagating deadline information downstream via a header
+| Option   | Type | Description |
+|----------|------|-------------|
+| `params` | `Record<string, string \| number>` | Replaces `{param}` in the path. Required if the path has placeholders. |
+| `query`  | `Record<string, string \| number \| boolean \| ...[]>` | Serialized with `URLSearchParams` and appended to the URL. |
+| `headers`| `HeadersInput` | Request headers. Multi-value supported as `string \| string[]` (e.g. `set-cookie`). |
+| `body`   | `unknown` | JSON-encoded; sets `content-type: application/json`. |
+| `data`   | `unknown` | Raw body; overrides `body` and does not set content-type. |
+| `timeout`| `number` | Request timeout in ms (core turns it into an abort signal). |
+| `signal` | `AbortSignal` | Optional abort signal, combined with timeout. |
+| `retries`| — | Used by [withRetry](./src/with-retry/readme.md). |
 
-## API Overview
+Full types: `EndpointOptions` and `RequestOptions` in `src/types.ts`.
 
-- `http(options)` → creates a base client (bind-only).
-- `client.bind(ctx, config)` → returns a bound client with merged config.
-- `bound.endpoint(route, options)` → returns `{method, url, headers, body}`.
-- `bound.request(route, options)` → performs fetch and returns `{status, url, headers, data}`.
+Example with params and query:
 
-`bind` is required before any request to ensure `ctx` is always available.
+```ts
+await client.bind({}).request('GET /lists/{id}', {
+  params: { id: '42' },
+  query: { limit: 10 },
+});
+```
 
 ## Composition
 
@@ -137,30 +150,23 @@ Retry policies with backoff, jitter, Retry-After, and optional retry budget.
 
 ## Configuration
 
+Client creation and per-request config:
+
 ```ts
-type HeaderValue = string | string[];
-type HeadersMap = Record<string, HeaderValue>;
-type HeadersInput = HeadersMap | [string, string][];
-
-type HttpConfig = {
-  headers?: HeadersInput;
-  timeout?: number;
-};
-
 type HttpOptions = {
   endpoint: string;
   fetch?: FetchImpl;
   config?: HttpConfig;
 };
+
+type HttpConfig = {
+  headers?: HeadersInput;
+  timeout?: number;
+};
 ```
 
-## Notes
-
-- `params` replaces `{param}` segments in the path.
-- `query` is serialized using `URLSearchParams`.
-- `body` is JSON-encoded and sets `content-type: application/json`.
-- `data` bypasses JSON encoding and overrides `body`.
-- `headers` supports multi-values as `string | string[]` (for example `set-cookie`).
+`HttpConfig` is merged into requests (e.g. from `bind(ctx, config)`). Header
+types and full option types are in `src/types.ts`.
 
 ## Architecture decisions
 

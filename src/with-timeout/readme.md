@@ -14,6 +14,18 @@
 - **Deadline clamping**: when `ctx.deadline` is present, the effective timeout cannot exceed remaining time.
 - **Header propagation**: downstream services can receive deadline info via a header (e.g. `x-timeout-ms`).
 
+### Timeout: mechanism vs policy
+
+The core `@ojson/http` request treats `RequestOptions.timeout` as a **mechanism**:
+it is converted into an `AbortSignal`, combined with any external `signal`, and
+timers are always cleaned up. There is no default timeout in the core.
+
+`withTimeout` adds a **policy layer** on top:
+
+- apply a default timeout when none is set
+- clamp the effective timeout by `ctx.deadline`
+- propagate deadline information downstream via a header
+
 ## Installation
 
 ```ts
