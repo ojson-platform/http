@@ -6,6 +6,27 @@ import type {HttpClient, HttpOptions, HttpWrapper} from './types';
 export type HttpFactory<CTX = unknown> = (options: HttpOptions) => HttpClient<CTX>;
 
 /**
+ * Extracts ctx type from a wrapper.
+ */
+type WrapperCtx<W> = W extends HttpWrapper<infer CTX> ? CTX : never;
+
+/**
+ * Converts a union to intersection.
+ */
+type UnionToIntersection<U> = (U extends unknown ? (arg: U) => void : never) extends (
+  arg: infer I,
+) => void
+  ? I
+  : never;
+
+/**
+ * Computes the final ctx type from a list of wrappers.
+ */
+type ComposeCtx<W extends readonly HttpWrapper<unknown>[]> = [W[number]] extends [never]
+  ? unknown
+  : UnionToIntersection<WrapperCtx<W[number]>>;
+
+/**
  * Compose a base HTTP client factory with wrapper helpers.
  *
  * @param base Base factory (usually http).
@@ -14,15 +35,16 @@ export type HttpFactory<CTX = unknown> = (options: HttpOptions) => HttpClient<CT
  *
  * ADR: docs/ADR/0003-compose-http-client.md
  */
-export const compose = <CTX = unknown>(
+export const compose = <W extends readonly HttpWrapper<unknown>[]>(
   base: HttpFactory,
-  ...wrappers: Array<HttpWrapper<CTX>>
-): HttpFactory<CTX> => {
-  return (options: HttpOptions): HttpClient<CTX> => {
-    let client = base(options) as HttpClient<CTX>;
+  ...wrappers: W
+): HttpFactory<ComposeCtx<W>> => {
+  return (options: HttpOptions): HttpClient<ComposeCtx<W>> => {
+    let client = base(options) as HttpClient<ComposeCtx<W>>;
 
     for (const wrapper of wrappers) {
-      client = wrapper(client);
+      const apply = wrapper as HttpWrapper<ComposeCtx<W>>;
+      client = apply(client) as HttpClient<ComposeCtx<W>>;
     }
 
     return client;
