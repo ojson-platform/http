@@ -85,8 +85,7 @@ export const parseRetriesShorthand = (
 };
 
 export const buildBackoffScheduleSeconds = (count: number, options?: BackoffOptions): number[] => {
-  const resolved =
-    options != null ? {...DEFAULT_BACKOFF, ...options} : {...DEFAULT_BACKOFF};
+  const resolved = options != null ? {...DEFAULT_BACKOFF, ...options} : {...DEFAULT_BACKOFF};
   const base = resolved.baseDelay;
   const max = resolved.maxDelay;
   const factor = resolved.factor;
