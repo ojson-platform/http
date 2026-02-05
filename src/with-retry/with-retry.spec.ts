@@ -189,4 +189,30 @@ describe('withRetry', () => {
     expect(baseRequest).toHaveBeenCalledTimes(2); // initial + 1 retry, second retry skipped by budget
     vi.useRealTimers();
   });
+
+  it('throws on invalid retries shorthand', async () => {
+    const client = createClient(vi.fn());
+    const wrapped = withRetry({retries: 'invalid-shorthand'})(client);
+
+    await expect(wrapped.bind({}).request('GET /lists')).rejects.toThrow(
+      /Invalid retries shorthand/,
+    );
+  });
+
+  it('throws last error when all retries exhausted', async () => {
+    vi.useFakeTimers();
+
+    const err = createError(503);
+    const baseRequest = vi.fn<BoundHttpClient['request']>().mockRejectedValue(err);
+    const client = createClient(baseRequest);
+    const wrapped = withRetry({retries: [0.001], jitter: 0})(client);
+    const promise = wrapped.bind({}).request('GET /lists');
+    const outcome = promise.then(() => null as unknown, (e: unknown) => e);
+
+    await vi.advanceTimersByTimeAsync(2);
+    const caught = await outcome;
+    expect(caught).toBe(err);
+    expect(baseRequest).toHaveBeenCalledTimes(2);
+    vi.useRealTimers();
+  });
 });

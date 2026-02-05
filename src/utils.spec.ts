@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 
-import {mergeRequestOptions, normalizeHeaders} from './utils';
+import {mergeConfig, mergeRequestOptions, normalizeHeaders} from './utils';
 
 describe('normalizeHeaders', () => {
   it('preserves duplicate header entries as arrays', () => {
@@ -40,5 +40,45 @@ describe('mergeRequestOptions', () => {
     );
 
     expect(merged.headers?.['cache-control']).toBe('no-cache');
+  });
+
+  it('preserves base headers when next is empty', () => {
+    const merged = mergeRequestOptions(
+      {headers: {'x-custom': 'from-base', 'accept': 'application/json'}},
+      {},
+    );
+
+    expect(merged.headers?.['x-custom']).toBe('from-base');
+    expect(merged.headers?.['accept']).toBe('application/json');
+  });
+});
+
+describe('mergeConfig', () => {
+  it('returns undefined when both base and next are undefined', () => {
+    expect(mergeConfig(undefined, undefined)).toBeUndefined();
+  });
+
+  it('returns next timeout when both have timeout', () => {
+    const result = mergeConfig({timeout: 100, headers: {}}, {timeout: 200});
+    expect(result?.timeout).toBe(200);
+  });
+
+  it('returns base timeout when next has no timeout', () => {
+    const result = mergeConfig({timeout: 100}, {});
+    expect(result?.timeout).toBe(100);
+  });
+
+  it('merges headers from base and next', () => {
+    const result = mergeConfig(
+      {headers: {'x-base': 'a'}},
+      {headers: {'x-next': 'b'}},
+    );
+    expect(result?.headers).toEqual({['x-base']: 'a', ['x-next']: 'b'});
+  });
+
+  it('returns next-only config when base is undefined', () => {
+    const result = mergeConfig(undefined, {timeout: 50, headers: {'a': '1'}});
+    expect(result?.timeout).toBe(50);
+    expect(result?.headers).toEqual({a: '1'});
   });
 });

@@ -102,6 +102,41 @@ describe('request', () => {
     });
   });
 
+  it('throws when fetch is not provided', async () => {
+    const origFetch = globalThis.fetch;
+    try {
+      (globalThis as unknown as {fetch?: unknown}).fetch = undefined;
+      await expect(
+        request('GET /lists', {baseUrl: 'https://api.test'}, {}),
+      ).rejects.toThrow('Fetch implementation is required.');
+    } finally {
+      (globalThis as unknown as {fetch: unknown}).fetch = origFetch;
+    }
+  });
+
+  it('sends multi-value headers as multiple entries', async () => {
+    let capturedInit: RequestInit | undefined;
+    const fetchImpl = vi.fn(async (_url: string, init?: RequestInit) => {
+      capturedInit = init;
+      return new Response('ok', {status: 200});
+    });
+
+    await request(
+      'GET /lists',
+      {
+        baseUrl: 'https://api.test',
+        headers: {'x-custom': ['a', 'b']},
+      },
+      {fetch: fetchImpl},
+    );
+
+    expect(capturedInit?.headers).toBeDefined();
+    const headers = capturedInit!.headers as Array<[string, string]>;
+    const custom = headers.filter(([k]) => k.toLowerCase() === 'x-custom');
+    expect(custom).toHaveLength(2);
+    expect(custom.map(([, v]) => v)).toEqual(['a', 'b']);
+  });
+
   it('propagates AbortError on timeout', async () => {
     vi.useFakeTimers();
 

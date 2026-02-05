@@ -35,6 +35,13 @@ const headersToObject = (headers: RequestInit['headers']): Record<string, string
 };
 
 describe('integration helpers', () => {
+  it('throws when bind is called with undefined ctx', () => {
+    const client = http({endpoint: 'https://api.test'});
+    expect(() => client.bind(undefined as unknown as Record<string, never>)).toThrow(
+      'http.bind(ctx) requires a non-undefined ctx value.',
+    );
+  });
+
   it('preserves withAuth when composed with withLogger', async () => {
     const fetch = vi.fn(async (_url: string, init?: RequestInit) => {
       const headers = headersToObject(init?.headers);

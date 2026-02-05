@@ -215,4 +215,23 @@ describe('withLogger', () => {
     const [event] = info.mock.calls[0];
     expect((event as any).response.data.text).toContain('…(truncated');
   });
+
+  it('logs request start when include.requestStart is true and level allows debug', async () => {
+    const debug = vi.fn();
+    const info = vi.fn();
+    const client = createClient();
+
+    const wrapped = withLogger({
+      logger: {debug, info},
+      include: {requestStart: true},
+      level: 'debug',
+    })(client);
+
+    await wrapped.bind({}).request('GET /lists');
+
+    expect(debug).toHaveBeenCalledTimes(1);
+    const [event, message] = debug.mock.calls[0];
+    expect(message).toBe('http.request');
+    expect(event).toMatchObject({event: 'http.request', route: 'GET /lists'});
+  });
 });

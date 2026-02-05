@@ -69,4 +69,27 @@ describe('endpoint', () => {
       }),
     ).toThrow('Missing param "id"');
   });
+
+  it('throws when path has placeholder but params omit it', () => {
+    expect(() =>
+      endpoint('GET /lists/{a}/{b}', {
+        baseUrl: 'https://api.test',
+        params: {a: '1'},
+      }),
+    ).toThrow('Missing param "b"');
+  });
+
+  it('throws on invalid HTTP method', () => {
+    expect(() =>
+      endpoint('INVALID_METHOD /path', {baseUrl: 'https://api.test'}),
+    ).toThrow('Invalid HTTP method');
+  });
+
+  it('returns url without query string when query is empty object', () => {
+    const result = endpoint('GET /path', {
+      baseUrl: 'https://api.test',
+      query: {},
+    });
+    expect(result.url).toBe('https://api.test/path');
+  });
 });

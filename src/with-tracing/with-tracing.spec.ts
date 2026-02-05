@@ -64,4 +64,24 @@ describe('withTracing', () => {
 
     expect(result.data).toMatchObject({headers: {}});
   });
+
+  it('does not add header when getId returns null or empty string', async () => {
+    const response: ResponseData = {status: 200, url: '', headers: {}, data: null};
+    const baseRequest = vi.fn(async (_route, options) => ({...response, data: options}));
+    const client = createClient(baseRequest);
+
+    const wrappedNull = withTracing({
+      headerName: 'x-request-id',
+      getId: () => null,
+    })(client);
+    const resultNull = await wrappedNull.bind({}).request('GET /lists');
+    expect(resultNull.data).toMatchObject({headers: {}});
+
+    const wrappedEmpty = withTracing({
+      headerName: 'x-request-id',
+      getId: () => '',
+    })(client);
+    const resultEmpty = await wrappedEmpty.bind({}).request('GET /lists');
+    expect(resultEmpty.data).toMatchObject({headers: {}});
+  });
 });

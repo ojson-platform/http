@@ -15,6 +15,7 @@ export default defineConfig({
         '**/*.spec.ts',
         '**/*.test.ts',
         '**/__tests__/**',
+        '**/types.ts',
         'scripts/',
         '*.config.ts',
         '*.config.js',

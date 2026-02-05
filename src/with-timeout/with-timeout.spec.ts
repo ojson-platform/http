@@ -111,4 +111,53 @@ describe('withTimeout', () => {
     });
     vi.useRealTimers();
   });
+
+  it('uses getDeadline from options when provided', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1000);
+    const response: ResponseData = {status: 200, url: '', headers: {}, data: null};
+    const baseRequest = vi.fn(async (_route, options) => ({...response, data: options}));
+    const client = createClient(baseRequest);
+    const wrapped = withTimeout({
+      defaultTimeout: 10_000,
+      getDeadline: () => 1500,
+    })(client);
+
+    const result = await wrapped.bind({}).request('GET /lists');
+
+    expect(result.data).toMatchObject({timeout: 500});
+    vi.useRealTimers();
+  });
+
+  it('adds deadline header in absolute-ms mode', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1000);
+    const response: ResponseData = {status: 200, url: '', headers: {}, data: null};
+    const baseRequest = vi.fn(async (_route, options) => ({...response, data: options}));
+    const client = createClient(baseRequest);
+    const wrapped = withTimeout({
+      deadlineHeader: {name: 'x-deadline', mode: 'absolute-ms'},
+    })(client);
+
+    const result = await wrapped.bind({deadline: 1800}).request('GET /lists');
+
+    expect(result.data).toMatchObject({
+      headers: {'x-deadline': '1800'},
+    });
+    vi.useRealTimers();
+  });
+
+  it('clamps effective timeout by minTimeout when remaining is small', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1000);
+    const response: ResponseData = {status: 200, url: '', headers: {}, data: null};
+    const baseRequest = vi.fn(async (_route, options) => ({...response, data: options}));
+    const client = createClient(baseRequest);
+    const wrapped = withTimeout({minTimeout: 5})(client);
+
+    const result = await wrapped.bind({deadline: 1000.002}).request('GET /lists');
+
+    expect(result.data).toMatchObject({timeout: 5});
+    vi.useRealTimers();
+  });
 });
