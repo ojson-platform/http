@@ -1,0 +1,28 @@
+{
+  "repo_notes": [
+    {
+      "content": "Generate documentation primarily for the @ojson/http library. Prioritize: src/ (library code, especially src/client/, src/with-auth/, src/with-timeout/, src/with-retry/, src/with-tracing/, src/with-logger/, compose.ts, types.ts, utils.ts), README.md, package.json, docs/ADR/, docs/AGENTS/, and module readmes under src/client/readme.md and src/with-*/readme.md. Ignore test files and config that do not describe public API behavior.",
+      "author": "Maintainers"
+    },
+    {
+      "content": "Canonical user-facing documentation: root README.md (Overview, Core Concepts, Request options, Errors, Composition, Stability patterns, Modules), and per-module readmes in src/client/readme.md and src/with-auth/, src/with-timeout/, src/with-retry/, src/with-tracing/, src/with-logger/ readme.md. ADRs under docs/ADR/ explain design decisions (require bind, withAuth override, compose, HttpClient generic, multi-value headers, retry budget, timeout mechanism vs policy). Wiki pages should reference these and link to them in 'See also' where relevant.",
+      "author": "Maintainers"
+    },
+    {
+      "content": "Key sections to cover in the wiki (use repo_notes to steer; do not rely on pages array due to platform limits): (1) Architecture overview: small core (http, bind, endpoint, request) + composable wrappers (withAuth, withTimeout, withRetry, withTracing, withLogger), composition via compose(), context from bind(ctx, config). (2) Core client: http(options) → bind-only; bind(ctx, config) → BoundHttpClient with endpoint() and request(); route format (METHOD /path, {param}); RequestOptions/EndpointOptions (params, query, headers, body, data, timeout, signal, retries). (3) Errors: RequestError (status, request, response), AbortError; when each is thrown. (4) Configuration precedence: request(options) overrides bind(config) overrides config from http(options). (5) Stability patterns: exponential backoff, jitter, retry budget, deadline propagation, deadline clamping — what they are, why, when to use (see README Stability patterns table). (6) Each wrapper: when to use, key options, interaction with other wrappers (e.g. ordering: withAuth before withLogger; withRetry respects deadline from withTimeout). Link to module readmes and ADRs instead of duplicating long content.",
+      "author": "Maintainers"
+    },
+    {
+      "content": "Constraints and gotchas to highlight: (1) bind is required before any request (ADR 0001); the base client exposes only bind(). (2) Some RequestOptions only apply when the matching wrapper is used (e.g. retries only with withRetry). (3) Wrapper order in compose() matters: e.g. withAuth before withLogger so auth headers are not logged; withLogger before/after withRetry changes whether each retry or only the final outcome is logged. (4) Timeout: core implements mechanism (abort signal); withTimeout adds policy (defaults, deadline clamping, header propagation). (5) Idempotency: withRetry retries only idempotent methods by default unless allowNonIdempotent is set.",
+      "author": "Maintainers"
+    },
+    {
+      "content": "Architecture principles to emphasize: composition over inheritance (wrappers enhance the client without mutating it); context-aware design (ctx from bind() is available to all wrappers); typed routes and options (RequestRoute, EndpointOptions, RequestOptions in src/types.ts); separation of concerns (each with-* has a single responsibility). Reference existing sources: README.md, docs/AGENTS/core.md, docs/AGENTS/helpers-and-architecture.md, and ADRs (0001 require bind, 0003 compose, 0004 HttpClient generic, 0007 timeout mechanism vs policy). Prefer cross-links to these over duplicating long explanations in the wiki.",
+      "author": "Maintainers"
+    },
+    {
+      "content": "Cross-linking and duplication: when a concept is defined in the README or a module readme (e.g. Stability patterns, request options, binding), wiki pages should link to it rather than re-explaining in full. Include short 'See also' sections pointing to the relevant README section, module readme, or ADR. Keep module-specific content (when to use, API overview, pitfalls) aligned with the existing src/with-*/readme.md and src/client/readme.md structure.",
+      "author": "Maintainers"
+    }
+  ]
+}
