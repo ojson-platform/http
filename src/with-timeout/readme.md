@@ -14,6 +14,14 @@
 - **Deadline clamping**: when `ctx.deadline` is present, the effective timeout cannot exceed remaining time.
 - **Header propagation**: downstream services can receive deadline info via a header (e.g. `x-timeout-ms`).
 
+### Why propagate deadline
+
+In a chain of calls (e.g. A → B → C), if the original request has a 2s timeout, each hop should know how much time is left so the whole path fits in 2s. **Deadline propagation** sends the deadline (or remaining time) in a request header; downstream can clamp its own timeout and optionally propagate further. Use it when you have multi-hop calls and care about end-to-end latency.
+
+### Why clamp by deadline
+
+If the caller has a deadline in 100 ms, starting a request with a 30 s timeout is pointless. **Deadline clamping** caps the effective timeout to the remaining time until the deadline so we do not start requests that cannot complete in time. Combined with fail-fast when the deadline is already past, this keeps behavior predictable. Use it whenever you have a request-scoped deadline (e.g. from an incoming HTTP request).
+
 ### Timeout: mechanism vs policy
 
 The core `@ojson/http` request treats `RequestOptions.timeout` as a **mechanism**:
@@ -25,6 +33,12 @@ timers are always cleaned up. There is no default timeout in the core.
 - apply a default timeout when none is set
 - clamp the effective timeout by `ctx.deadline`
 - propagate deadline information downstream via a header
+
+See [ADR 0007 Timeout mechanism vs policy](../../docs/ADR/0007-timeout-mechanism-vs-policy.md).
+
+### Expired deadline (fail-fast)
+
+When `ctx.deadline` is in the past or remaining time is non-positive, the wrapper does **not** perform the request: it throws immediately (fail-fast). This avoids sending a request that cannot complete within the allowed time.
 
 ## Installation
 

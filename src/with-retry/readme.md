@@ -16,6 +16,14 @@ client interface.
 - **Retry-After**: server-provided delay for 429/503 responses.
 - **Retry budget**: optional token-bucket budget shared per wrapper instance.
 
+### Why backoff and jitter
+
+Without backoff, retries can hit the same failing service at the same time and make recovery harder. **Exponential backoff** increases the delay after each attempt (e.g. 1s, 2s, 4s), giving the downstream time to recover. **Jitter** adds randomness to that delay so many clients do not retry in sync (thundering herd). Use backoff whenever you retry on 5xx or 429; enable jitter when you have multiple clients. Linear backoff is an alternative when you prefer predictable spacing.
+
+### Why retry budget
+
+Without a budget, a single client can perform many retries and consume most of the capacity of a struggling service. A **retry budget** (token bucket) limits how many retries this client can use; successful requests refill tokens. Use a budget when you have many clients and want to protect the downstream; you can skip it for a single low-RPS client.
+
 ### Default behavior
 
 - **Disabled by default**: if `policy.retries` is not set (and `RequestOptions.retries` is not set), the wrapper behaves as a no-op.
@@ -76,6 +84,8 @@ await client.bind({}).request('POST /lists', {body: {name: 'todo'}});
 ```
 
 ### Retry budget
+
+When enabled, the retry budget (token-bucket style) limits how many retries this client can use overall; successful requests refill tokens. See [ADR 0006 Retry budget](../../docs/ADR/0006-retry-budget.md) for the rationale.
 
 ```ts
 import {compose, http, withRetry} from '@ojson/http';

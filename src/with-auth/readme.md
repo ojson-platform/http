@@ -10,9 +10,9 @@ context-bound credentials or services.
 
 ## Key Concepts
 
-- **Auth strategy**: a function `(ctx) => RequestOptions | void | Promise<...>`.
+- **Auth strategy**: a function `(ctx) => RequestOptions | void | Promise<...>`. The strategy receives only `ctx` (no `route`, `options`, or `config`) so that auth is always bound to context; see [ADR 0001 Require bind](../../docs/ADR/0001-require-bind.md).
 - **Merge semantics**: auth options are merged on top of request options (auth wins on conflicts).
-- **Override semantics**: if `withAuth` is applied multiple times, the last wrapper overrides the previous strategy.
+- **Override semantics**: if `withAuth` is applied multiple times, the last wrapper overrides the previous strategy. See [ADR 0002 withAuth overrides](../../docs/ADR/0002-withauth-override.md).
 
 ## Installation
 
@@ -68,8 +68,9 @@ await client.bind({}).request('GET /lists');
 
 - Keep strategies side-effect free; do I/O only when needed.
 - Prefer short-lived tokens derived from `ctx` when possible.
+- **Ordering with other wrappers:** place `withAuth` before [withLogger](../with-logger/readme.md) so auth headers are not logged; place it with or before [withRetry](../with-retry/readme.md) so each attempt gets correct auth; if the strategy uses `ctx.deadline` or timeouts, combine with [withTimeout](../with-timeout/readme.md).
 
 ## See Also
 
-- `src/with-timeout/readme.md` (deadline / timeout propagation)
+- [withTimeout](../with-timeout/readme.md) (deadline / timeout propagation)
 

@@ -42,7 +42,11 @@ export type RequestOptions = EndpointOptions & {
   ctx?: unknown;
   signal?: AbortSignal;
   timeout?: number;
-  retries?: number | number[];
+  /**
+   * Per-request retry schedule. Only applied when the client is wrapped with
+   * `withRetry`; otherwise ignored. See withRetry readme for formats.
+   */
+  retries?: number | number[] | string;
   parseSuccessResponseBody?: boolean;
 };
 

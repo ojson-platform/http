@@ -67,5 +67,6 @@ order and naming for consistency.
 10. **See Also**
     - Links to related helpers (`withAuth`, `withTimeout`, `withRetry`, `withTracing`).
     - Links to relevant ADR(s) in `docs/ADR/`.
+    - Prefer **inline** links to ADRs and related module readmes where the concept is first used, not only in See Also.
 
 

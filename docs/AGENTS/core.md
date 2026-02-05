@@ -56,7 +56,7 @@ Configuration merges are immutable and deterministic:
 - headers are normalized to lowercase,
 - `undefined` values are removed before merge,
 - nested objects are deep-merged,
-- precedence is: `withDefaults` → `bind(config)` → `request(options)`.
+- precedence is: `request(options)` overrides `bind(config)` overrides config from `http(options)`. (Note: `withDefaults` is not implemented yet; when it is, it would sit at the base of this chain.)
 
 See ADRs:
 

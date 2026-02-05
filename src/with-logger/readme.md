@@ -7,6 +7,8 @@ requests, responses and errors.
 
 The wrapper is intentionally transport-agnostic: you provide a `logger` implementation
 (pino/bunyan-like), and the wrapper calls `logger.info|warn|error(event, message)`.
+Errors thrown inside the logger are **never** propagated to the caller; the request
+still completes or fails based on the underlying client only.
 
 ## Key Concepts
 
@@ -14,7 +16,7 @@ The wrapper is intentionally transport-agnostic: you provide a `logger` implemen
 - **Conservative defaults**: bodies and headers are not logged unless explicitly enabled.
 - **Redaction**: sensitive headers are redacted by default (authorization/cookie/etc).
 - **Composition ordering matters**: depending on where `withLogger` is placed in `compose(...)`,
-  it can log each retry attempt or only the final outcome.
+  it can log each retry attempt or only the final outcome. See [withRetry](../with-retry/readme.md) and [withTimeout](../with-timeout/readme.md) for how ordering affects behavior.
 
 ## Installation
 
@@ -69,7 +71,7 @@ const client = compose(
 
 ### Ordering with retries and timeouts
 
-- Log **each retry attempt**:
+- Log **each retry attempt** (logger wraps [withRetry](../with-retry/readme.md)):
 
 ```ts
 compose(http, withLogger({logger}), withRetry({retries: 3}))
@@ -80,6 +82,8 @@ compose(http, withLogger({logger}), withRetry({retries: 3}))
 ```ts
 compose(http, withRetry({retries: 3}), withLogger({logger}))
 ```
+
+Ordering with [withTimeout](../with-timeout/readme.md) matters if you want the logged timeout to reflect the effective timeout computed by the wrapper (place logger before withTimeout so it sees the merged options).
 
 ## API Overview
 
@@ -102,7 +106,6 @@ compose(http, withRetry({retries: 3}), withLogger({logger}))
 
 ## See Also
 
-- `src/with-retry/readme.md`
-- `src/with-timeout/readme.md`
-- `docs/readme-template.md`
+- [withRetry](../with-retry/readme.md), [withTimeout](../with-timeout/readme.md)
+- [docs/readme-template.md](../../docs/readme-template.md)
 
