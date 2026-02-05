@@ -99,10 +99,37 @@ await client.bind({deadline: Date.now() + 2500}).request('GET /lists', {
 
 ## API Overview
 
-- `withTimeout(number)` → `HttpWrapper`
-  - shorthand for `{ defaultTimeout: number }`
-- `withTimeout(options)` → `HttpWrapper`
-  - `defaultTimeout`, `propagateDeadline`, `minTimeout`, `getDeadline`, `deadlineHeader`
+`withTimeout(arg?)` returns an `HttpWrapper`. The argument can be a number (shorthand) or an options object.
+
+### Shorthand: withTimeout(number)
+
+`withTimeout(5000)` is equivalent to `withTimeout({ defaultTimeout: 5000 })`. Use when you only need a default timeout.
+
+### options.defaultTimeout
+
+Default timeout in milliseconds. Applied when neither the request nor the bind config provides `timeout`. If deadline propagation is enabled and `ctx.deadline` is set, the effective timeout is the minimum of this value and the remaining time to the deadline.
+
+### options.propagateDeadline
+
+Whether to use `ctx.deadline` (or `getDeadline(ctx)`) to clamp the effective timeout and to fail fast when the deadline is already past. Default: `true`. Set to `false` to ignore deadlines and only use `defaultTimeout` / request timeout.
+
+### options.minTimeout
+
+Minimum effective timeout in milliseconds. When the remaining time to the deadline is smaller than this, the effective timeout is raised to `minTimeout` (so the request is not sent with an impractically small timeout). Default: `1`.
+
+### options.getDeadline
+
+`(ctx) => number | undefined`. Resolve deadline as epoch milliseconds from the bind context. If provided, it overrides `ctx.deadline`: the wrapper uses this value for clamping and fail-fast. Use when the deadline is stored in a different shape (e.g. a nested object or a different unit).
+
+### options.deadlineHeader
+
+When set, the wrapper adds a request header with deadline information so downstream services can clamp their own timeouts. If the header is already present and `respectExisting` is true, it is not overwritten.
+
+| Type | Meaning |
+|------|---------|
+| omitted | No header is added. |
+| `string` | Shorthand: `"name"` or `"name,mode"`. **name**: header name (e.g. `x-timeout-ms`). **mode** (optional): `relative-ms` (remaining time in ms; default) or `absolute-ms` (deadline as epoch ms). Example: `'x-timeout-ms,relative-ms'`. |
+| `DeadlineHeaderConfig` | **name**: header name. **mode**: `'relative-ms'` \| `'absolute-ms'` (default: `'relative-ms'`). **respectExisting**: do not overwrite existing header (default: `true`). |
 
 ## Testing Notes
 

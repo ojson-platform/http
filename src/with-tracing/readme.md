@@ -55,9 +55,22 @@ export const baseHttpClient = compose(
 
 ## API Overview
 
-- `withTracing(opts?)` → `HttpWrapper`
-  - `headerName?: string` (default: `x-request-id`)
-  - `getId?: (ctx) => string | null | undefined | Promise<...>`
+`withTracing(opts?)` returns an `HttpWrapper`. All options are optional. If the correlation header is already set on the request (e.g. by the caller), the wrapper never overwrites it.
+
+### opts.headerName
+
+Name of the request header used to send the correlation id. Default: `'x-request-id'`. The name is normalized to lowercase when comparing with existing headers, so existing headers are respected regardless of casing.
+
+### opts.getId
+
+Resolves the correlation id from the bind context. Called once per request when the header is missing.
+
+| Aspect | Behavior |
+|--------|----------|
+| Signature | `(ctx: unknown) => string \| null \| undefined \| Promise<string \| null \| undefined>` — may be sync or async. |
+| When header is set | If the return value is a non-empty string (after trim), that value is set as the header. |
+| When header is not set | If `getId` is omitted, returns `null`/`undefined`, returns `''`, or returns a string that is empty after trim — the header is not added. |
+| Errors | If `getId` throws or the returned promise rejects, the error is caught and the header is not set; the request proceeds without the correlation header. |
 
 ## Testing Notes
 

@@ -55,9 +55,18 @@ await client.bind({}).request('GET /lists');
 
 ## API Overview
 
-- `withAuth(strategy)` → `HttpWrapper`
-  - **strategy**: `(ctx) => RequestOptions | void | Promise<...>`
-  - **returns**: wrapper compatible with `compose`
+`withAuth(strategy)` returns an `HttpWrapper` compatible with `compose`. The strategy is **required** (there is no default). When `withAuth` is applied multiple times in a composition, the **last** strategy overrides the previous one; see [ADR 0002](../../docs/ADR/0002-withauth-override.md).
+
+### strategy (required)
+
+Function that returns auth-related request options. It is invoked on **every** request with the same `ctx` that was passed to `bind(ctx, ...)`.
+
+| Aspect | Behavior |
+|--------|----------|
+| Signature | `(ctx: CTX) => RequestOptions \| void \| Promise<RequestOptions \| void>`. May be sync or async. |
+| Argument | Only `ctx` is passed (no route, no request options). Auth is bound to context; see [ADR 0001](../../docs/ADR/0001-require-bind.md). |
+| Return value | Optional. If you return `RequestOptions` (e.g. `headers`, `timeout`, `signal`), they are **merged on top of** the caller’s request options: auth wins on conflicts (e.g. same header name). Return `undefined`/`void` to add nothing. |
+| Merge order | `mergeRequestOptions(requestOptions, authResult)` — so auth result overrides request options where both set a value. |
 
 ## Testing Notes
 

@@ -87,12 +87,71 @@ Ordering with [withTimeout](../with-timeout/readme.md) matters if you want the l
 
 ## API Overview
 
-- `withLogger(options?)` → `HttpWrapper`
-  - `logger`: `LoggerLike` or `(ctx) => LoggerLike`
-  - `enabled`: boolean or `(meta) => boolean`
-  - `level`: minimal emitted level (`debug|info|warn|error`)
-  - `include`: toggles for headers/bodies/start event/resolved URL
-  - `redact`: header and path redaction
+`withLogger(options?)` returns an `HttpWrapper`. All options are optional. If `logger` is not provided, logging is disabled (no events emitted).
+
+### options.logger
+
+Logger implementation. Compatible with pino/bunyan-like interfaces: methods `debug`, `info`, `warn`, `error` with signature `(event: unknown, message?: string) => void`. Missing levels are no-op.
+
+| Type | Behavior |
+|------|----------|
+| omitted | Logging disabled. |
+| `LoggerLike` | Same logger for all requests. |
+| `(ctx) => LoggerLike \| undefined` | Resolve logger per request from bind context; `undefined` disables logging for that request. |
+
+### options.enabled
+
+Whether to emit logs for a given request. Default: `true` when `logger` is set, otherwise `false`.
+
+| Type | Behavior |
+|------|----------|
+| `boolean` | Global on/off. |
+| `(meta: { ctx, route, options }) => boolean` | Per-request: return `false` to skip logging for that call. |
+
+### options.level
+
+Minimal level to emit. Events below this level are not sent. Default: `'info'`. Values: `'debug'`, `'info'`, `'warn'`, `'error'`.
+
+### options.include
+
+What to put into each log entry. Defaults are conservative (no headers/bodies by default).
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `requestStart` | `boolean` | `false` | Emit a `http.request` entry before executing the request (level: debug). |
+| `responseSuccess` | `boolean` | `true` | Log successful responses (2xx/3xx). |
+| `responseError` | `boolean` | `true` | Log errors (4xx, 5xx, network, abort). |
+| `headers` | `boolean` | `false` | Include request/response headers (after redaction). |
+| `requestBody` | `boolean` | `false` | Include request body (after redaction). |
+| `responseBody` | `boolean` | `false` | Include response body (after redaction). |
+| `resolvedUrl` | `boolean` | `true` | Include resolved URL (requires calling `endpoint()`; set `false` to avoid extra work). |
+
+### options.redact
+
+How to redact sensitive data in logged payloads. Default: enabled with a safe set of header names (e.g. `authorization`, `cookie`, `set-cookie`, `x-api-key`).
+
+| Value | Meaning |
+|-------|---------|
+| `false` | No redaction. |
+| `{ headers?, paths?, replace? }` | **headers**: `true` (use default list) or `string[]` of header names (case-insensitive). **paths**: dot paths to redact in the event object, e.g. `['request.body.password', 'response.data.token']`. **replace**: string to use instead of redacted value (default: `'[REDACTED]'`). |
+
+### options.mapLevel
+
+Custom mapping from response/error to log level. Default: success → `info`, 4xx → `warn`, 5xx/network → `error`, AbortError → `warn`.
+
+Signature: `(event: { kind: 'response' | 'error'; status?: number; error?: unknown }) => LogLevel`.
+
+### options.baseFields
+
+Extra key-value fields attached to every log entry (e.g. `service`, `env`). Merged into the event object before redaction.
+
+### options.getFields
+
+`(ctx) => Record<string, unknown> | undefined`. Extracts extra fields from the bind context (e.g. request id from `ctx`). Merged into the event object before redaction.
+
+### options.maxStringLength
+
+Maximum length for string values (bodies, error messages, stacks). Longer strings are truncated and suffixed with `…(truncated)`. Default: `8192`.
 
 ## Testing Notes
 

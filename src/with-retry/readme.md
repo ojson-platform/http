@@ -98,13 +98,60 @@ const client = compose(
 
 ## API Overview
 
-- `withRetry(policy?)` → `HttpWrapper`
-  - **policy.retries**: `number | number[] | string`
-  - **policy.backoff**: `{ strategy, baseDelay, maxDelay, factor }`
-  - **policy.jitter**: `number | (delaySeconds, attempt) => number`
-  - **policy.budget**: preset, shorthand, or config object
-  - **policy.shouldRetry**: custom predicate
-  - **policy.allowNonIdempotent**: retry non-idempotent methods
+`withRetry(policy?)` returns an `HttpWrapper`. All options are optional; if `retries` is not set (and not overridden per request), the wrapper does not retry.
+
+### policy.retries
+
+Defines how many retries and with what delays.
+
+| Type | Meaning |
+|------|---------|
+| `number` | Number of retries; delay schedule is generated from `backoff` (exponential or linear). |
+| `number[]` | Explicit schedule: delay in seconds before each retry (e.g. `[1, 3, 10]` → wait 1s, then 3s, then 10s). |
+| `string` | Shorthand: `"strategy,baseDelay,retries"`. Example: `"exp,1,3"` → 3 retries, exponential, base 1s. Allowed strategies: `exp`, `linear`. |
+
+Can be overridden per request via `RequestOptions.retries`.
+
+### policy.backoff
+
+Used when `retries` is a `number` or a shorthand string. Ignored when `retries` is an array.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `strategy` | `'exp' \| 'linear'` | `'exp'` | `exp`: delay = baseDelay × factor^(attempt−1); `linear`: delay = baseDelay × attempt. |
+| `baseDelay` | `number` | `1` | Base delay in seconds (first retry). |
+| `maxDelay` | `number` | `30` | Cap on delay in seconds. |
+| `factor` | `number` | `2` | Multiplier for exponential backoff. |
+
+### policy.jitter
+
+Reduces synchronized retries by randomizing the delay.
+
+| Type | Behavior |
+|------|----------|
+| `number` | Ratio in `[0, 1]`. Delay becomes `delay ± delay × jitter`. Default when not set: `0.2` (20%). |
+| `(delaySeconds, attempt) => number` | Custom: given base delay and attempt index, return the actual delay in seconds. Invalid or negative return is ignored (original delay is used). |
+
+### policy.budget
+
+Optional retry budget (token bucket) shared per wrapper instance. Limits how many retries this client can spend; successful responses refill tokens.
+
+| Value | Meaning |
+|-------|---------|
+| `undefined` or `'off'` | No budget (default). |
+| `'conservative'` | Preset: few tokens, low refill. |
+| `'balanced'` | Preset: moderate tokens and refill. |
+| `'aggressive'` | Preset: more tokens and refill. |
+| `"budget,maxTokens,refillOnSuccess,costPerRetry"` | Shorthand, e.g. `"budget,10,0.1,1"`. |
+| `{ maxTokens, refillOnSuccess, costPerRetry }` | Object: same semantics. |
+
+### policy.shouldRetry
+
+Custom predicate: `(error: RequestError, meta: { route, attempt }) => boolean`. If provided, it replaces the default rule (retry on network errors, 429, 5xx). Return `true` to allow a retry.
+
+### policy.allowNonIdempotent
+
+When `true`, retries are also applied to non-idempotent methods (e.g. `POST`, `PATCH`). Default: `false` (only idempotent methods are retried).
 
 ## Testing Notes
 
