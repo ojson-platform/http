@@ -3,6 +3,9 @@ import {describe, expect, it} from 'vitest';
 import {
   DEFAULT_REDACT_HEADERS,
   applyRedaction,
+  buildRequestHeadersForLog,
+  buildResponseHeadersForLog,
+  computeResolved,
   defaultMapLevel,
   normalizeInclude,
   normalizeRedaction,
@@ -91,5 +94,51 @@ describe('withLogger utils', () => {
 
     const fromObject = pickMethodAndUrl(undefined, {method: 'put', url: '/items/1'});
     expect(fromObject).toEqual({method: 'PUT', url: '/items/1'});
+  });
+
+  it('pickMethodAndUrl returns method only when route string has no space', () => {
+    expect(pickMethodAndUrl(undefined, 'GET')).toEqual({method: 'GET'});
+  });
+
+  it('applyRedaction skips path when intermediate key is missing', () => {
+    const payload = {request: {}};
+    const result = applyRedaction(payload, {
+      headerKeys: new Set(),
+      paths: ['request.body.password'],
+      replace: '[REDACTED]',
+      maxStringLength: 1024,
+    });
+    expect(result).toEqual({request: {}});
+  });
+
+  it('applyRedaction skips path when intermediate value is not an object', () => {
+    const payload = {a: {b: 'string'}};
+    const result = applyRedaction(payload, {
+      headerKeys: new Set(),
+      paths: ['a.b.c'],
+      replace: '[REDACTED]',
+      maxStringLength: 1024,
+    });
+    expect(result).toEqual({a: {b: 'string'}});
+  });
+
+  it('computeResolved returns undefined when both include flags are false', () => {
+    const endpointFn = () => ({method: 'GET', url: 'https://a/', headers: {}});
+    expect(computeResolved(endpointFn, 'GET /x', undefined, false, false)).toBeUndefined();
+  });
+
+  it('buildRequestHeadersForLog returns undefined when no headers', () => {
+    expect(
+      buildRequestHeadersForLog(undefined, undefined, {
+        headerKeys: new Set(),
+        replace: '[REDACTED]',
+      }),
+    ).toBeUndefined();
+  });
+
+  it('buildResponseHeadersForLog returns undefined when headers empty or undefined', () => {
+    const redaction = {headerKeys: new Set(), replace: '[REDACTED]'};
+    expect(buildResponseHeadersForLog(undefined, redaction)).toBeUndefined();
+    expect(buildResponseHeadersForLog({}, redaction)).toBeUndefined();
   });
 });

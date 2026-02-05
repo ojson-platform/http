@@ -141,9 +141,9 @@ describe('resolveRetriesScheduleSeconds', () => {
   const policy = {retries: undefined as unknown as number, backoff: undefined};
 
   it('throws on invalid retries shorthand', () => {
-    expect(() =>
-      resolveRetriesScheduleSeconds({...policy, retries: 'bad'}),
-    ).toThrow(/Invalid retries shorthand/);
+    expect(() => resolveRetriesScheduleSeconds({...policy, retries: 'bad'})).toThrow(
+      /Invalid retries shorthand/,
+    );
   });
 
   it('returns empty array when no retries', () => {
@@ -206,6 +206,15 @@ describe('sleepMs', () => {
   it('resolves after delay when no signal', async () => {
     vi.useFakeTimers();
     const p = sleepMs(100);
+    await vi.advanceTimersByTimeAsync(100);
+    await expect(p).resolves.toBeUndefined();
+    vi.useRealTimers();
+  });
+
+  it('resolves after delay when signal provided but not aborted', async () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    const p = sleepMs(100, controller.signal);
     await vi.advanceTimersByTimeAsync(100);
     await expect(p).resolves.toBeUndefined();
     vi.useRealTimers();

@@ -147,6 +147,23 @@ describe('withTimeout', () => {
     vi.useRealTimers();
   });
 
+  it('ignores ctx.deadline when propagateDeadline is false', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1000);
+    const response: ResponseData = {status: 200, url: '', headers: {}, data: null};
+    const baseRequest = vi.fn(async (_route, options) => ({...response, data: options}));
+    const client = createClient(baseRequest);
+    const wrapped = withTimeout({
+      defaultTimeout: 5000,
+      propagateDeadline: false,
+    })(client);
+
+    const result = await wrapped.bind({deadline: 1500}).request('GET /lists');
+
+    expect(result.data).toMatchObject({timeout: 5000});
+    vi.useRealTimers();
+  });
+
   it('clamps effective timeout by minTimeout when remaining is small', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(1000);

@@ -65,6 +65,30 @@ describe('withTracing', () => {
     expect(result.data).toMatchObject({headers: {}});
   });
 
+  it('does not add header when opts has no getId', async () => {
+    const response: ResponseData = {status: 200, url: '', headers: {}, data: null};
+    const baseRequest = vi.fn(async (_route, options) => ({...response, data: options}));
+    const client = createClient(baseRequest);
+    const wrapped = withTracing({})(client);
+
+    const result = await wrapped.bind({}).request('GET /lists');
+
+    expect(result.data).toMatchObject({headers: {}});
+  });
+
+  it('does not add header when getId returns non-string', async () => {
+    const response: ResponseData = {status: 200, url: '', headers: {}, data: null};
+    const baseRequest = vi.fn(async (_route, options) => ({...response, data: options}));
+    const client = createClient(baseRequest);
+    const wrapped = withTracing({
+      getId: () => 123 as unknown as string,
+    })(client);
+
+    const result = await wrapped.bind({}).request('GET /lists');
+
+    expect(result.data).toMatchObject({headers: {}});
+  });
+
   it('does not add header when getId returns null or empty string', async () => {
     const response: ResponseData = {status: 200, url: '', headers: {}, data: null};
     const baseRequest = vi.fn(async (_route, options) => ({...response, data: options}));

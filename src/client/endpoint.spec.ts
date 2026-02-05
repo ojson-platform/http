@@ -80,9 +80,9 @@ describe('endpoint', () => {
   });
 
   it('throws on invalid HTTP method', () => {
-    expect(() =>
-      endpoint('INVALID_METHOD /path', {baseUrl: 'https://api.test'}),
-    ).toThrow('Invalid HTTP method');
+    expect(() => endpoint('INVALID_METHOD /path', {baseUrl: 'https://api.test'})).toThrow(
+      'Invalid HTTP method',
+    );
   });
 
   it('returns url without query string when query is empty object', () => {

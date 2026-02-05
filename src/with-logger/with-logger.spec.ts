@@ -216,6 +216,65 @@ describe('withLogger', () => {
     expect((event as any).response.data.text).toContain('…(truncated');
   });
 
+  it('includes ctxFields and response headers in error log when configured', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+
+    const errorFn = vi.fn();
+    const request = vi.fn(async () => {
+      vi.advanceTimersByTime(10);
+      throw new RequestError('fail', {
+        status: 502,
+        request: {method: 'GET', url: 'https://api.example.com/lists', headers: {}},
+        response: {
+          status: 502,
+          url: 'https://api.example.com/lists',
+          headers: {'x-server': 'down'},
+          data: null,
+        },
+      });
+    });
+    const client = createClient({requestImpl: request as any});
+
+    const wrapped = withLogger({
+      logger: {error: errorFn},
+      include: {headers: true},
+      getFields: (ctx: {requestId?: string}) =>
+        ctx.requestId ? {requestId: ctx.requestId} : undefined,
+    })(client);
+
+    await expect(wrapped.bind({requestId: 'req-1'}).request('GET /lists')).rejects.toBeInstanceOf(
+      RequestError,
+    );
+
+    expect(errorFn).toHaveBeenCalledTimes(1);
+    const [event] = errorFn.mock.calls[0];
+    expect(event).toMatchObject({
+      event: 'http.error',
+      requestId: 'req-1',
+      response: {headers: {['x-server']: 'down'}},
+    });
+    vi.useRealTimers();
+  });
+
+  it('logs request body when include.requestBody is true', async () => {
+    const info = vi.fn();
+    const request = vi.fn(
+      async () => ({status: 200, url: '', headers: {}, data: null}) as ResponseData,
+    );
+    const client = createClient({requestImpl: request as any});
+
+    const wrapped = withLogger({
+      logger: {info},
+      include: {requestBody: true},
+    })(client);
+
+    await wrapped.bind({}).request('POST /lists', {body: {name: 'todo'}});
+
+    const [event] = info.mock.calls[0];
+    expect(event.request?.body).toEqual({name: 'todo'});
+  });
+
   it('logs request start when include.requestStart is true and level allows debug', async () => {
     const debug = vi.fn();
     const info = vi.fn();

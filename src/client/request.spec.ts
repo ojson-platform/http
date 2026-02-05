@@ -37,6 +37,28 @@ describe('request', () => {
     expect(result.data).toBe('plain');
   });
 
+  it('returns null data for 204 No Content', async () => {
+    const fetchImpl = vi.fn(async () => new Response(null, {status: 204}));
+
+    const result = await request('GET /lists', {baseUrl: 'https://api.test'}, {fetch: fetchImpl});
+
+    expect(result.status).toBe(204);
+    expect(result.data).toBeNull();
+  });
+
+  it('enters catch when response.json() throws (body may be consumed)', async () => {
+    const fetchImpl = vi.fn(async () => {
+      return new Response('not valid json', {
+        status: 200,
+        headers: {'content-type': 'application/json'},
+      });
+    });
+
+    await expect(
+      request('GET /lists', {baseUrl: 'https://api.test'}, {fetch: fetchImpl}),
+    ).rejects.toThrow();
+  });
+
   it('skips body parsing when parseSuccessResponseBody is false', async () => {
     const fetchImpl = vi.fn(async () => {
       return new Response(JSON.stringify({ok: true}), {
@@ -106,9 +128,9 @@ describe('request', () => {
     const origFetch = globalThis.fetch;
     try {
       (globalThis as unknown as {fetch?: unknown}).fetch = undefined;
-      await expect(
-        request('GET /lists', {baseUrl: 'https://api.test'}, {}),
-      ).rejects.toThrow('Fetch implementation is required.');
+      await expect(request('GET /lists', {baseUrl: 'https://api.test'}, {})).rejects.toThrow(
+        'Fetch implementation is required.',
+      );
     } finally {
       (globalThis as unknown as {fetch: unknown}).fetch = origFetch;
     }
@@ -135,6 +157,24 @@ describe('request', () => {
     const custom = headers.filter(([k]) => k.toLowerCase() === 'x-custom');
     expect(custom).toHaveLength(2);
     expect(custom.map(([, v]) => v)).toEqual(['a', 'b']);
+  });
+
+  it('completes when AbortSignal is provided but not aborted', async () => {
+    const controller = new AbortController();
+    const fetchImpl = vi.fn(async () => {
+      return new Response(JSON.stringify({ok: true}), {
+        status: 200,
+        headers: {'content-type': 'application/json'},
+      });
+    });
+
+    const result = await request(
+      'GET /lists',
+      {baseUrl: 'https://api.test', signal: controller.signal},
+      {fetch: fetchImpl},
+    );
+
+    expect(result.data).toEqual({ok: true});
   });
 
   it('propagates AbortError on timeout', async () => {

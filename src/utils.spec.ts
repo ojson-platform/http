@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 
-import {mergeConfig, mergeRequestOptions, normalizeHeaders} from './utils';
+import {applyConfigToOptions, mergeConfig, mergeRequestOptions, normalizeHeaders} from './utils';
 
 describe('normalizeHeaders', () => {
   it('preserves duplicate header entries as arrays', () => {
@@ -44,7 +44,7 @@ describe('mergeRequestOptions', () => {
 
   it('preserves base headers when next is empty', () => {
     const merged = mergeRequestOptions(
-      {headers: {'x-custom': 'from-base', 'accept': 'application/json'}},
+      {headers: {'x-custom': 'from-base', accept: 'application/json'}},
       {},
     );
 
@@ -69,16 +69,24 @@ describe('mergeConfig', () => {
   });
 
   it('merges headers from base and next', () => {
-    const result = mergeConfig(
-      {headers: {'x-base': 'a'}},
-      {headers: {'x-next': 'b'}},
-    );
+    const result = mergeConfig({headers: {'x-base': 'a'}}, {headers: {'x-next': 'b'}});
     expect(result?.headers).toEqual({['x-base']: 'a', ['x-next']: 'b'});
   });
 
   it('returns next-only config when base is undefined', () => {
-    const result = mergeConfig(undefined, {timeout: 50, headers: {'a': '1'}});
+    const result = mergeConfig(undefined, {timeout: 50, headers: {a: '1'}});
     expect(result?.timeout).toBe(50);
     expect(result?.headers).toEqual({a: '1'});
+  });
+});
+
+describe('applyConfigToOptions', () => {
+  it('merges config headers and uses config timeout when options timeout is undefined', () => {
+    const options = {baseUrl: 'https://api.test', headers: {'x-request': 'a'}};
+    const config = {headers: {'x-config': 'b'}, timeout: 5000};
+    const result = applyConfigToOptions(options, config);
+
+    expect(result.headers).toMatchObject({'x-request': 'a', 'x-config': 'b'});
+    expect(result.timeout).toBe(5000);
   });
 });

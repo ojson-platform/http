@@ -72,6 +72,16 @@ describe('withRetry', () => {
     vi.useRealTimers();
   });
 
+  it('does not retry 4xx by default (throws immediately)', async () => {
+    const err = createError(400);
+    const baseRequest = vi.fn<BoundHttpClient['request']>().mockRejectedValue(err);
+    const client = createClient(baseRequest);
+    const wrapped = withRetry({retries: [1]})(client);
+
+    await expect(wrapped.bind({}).request('GET /lists')).rejects.toBe(err);
+    expect(baseRequest).toHaveBeenCalledTimes(1);
+  });
+
   it('does not retry non-idempotent methods by default', async () => {
     vi.useFakeTimers();
 
@@ -207,7 +217,10 @@ describe('withRetry', () => {
     const client = createClient(baseRequest);
     const wrapped = withRetry({retries: [0.001], jitter: 0})(client);
     const promise = wrapped.bind({}).request('GET /lists');
-    const outcome = promise.then(() => null as unknown, (e: unknown) => e);
+    const outcome = promise.then(
+      () => null as unknown,
+      (e: unknown) => e,
+    );
 
     await vi.advanceTimersByTimeAsync(2);
     const caught = await outcome;

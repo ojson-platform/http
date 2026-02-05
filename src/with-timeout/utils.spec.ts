@@ -1,11 +1,6 @@
 import {describe, expect, it} from 'vitest';
 
-import {
-  asOptions,
-  clampMin,
-  getDeadlineMs,
-  parseDeadlineHeader,
-} from './utils';
+import {asOptions, clampMin, getDeadlineMs, parseDeadlineHeader} from './utils';
 
 describe('asOptions', () => {
   it('returns empty object when arg is undefined', () => {
