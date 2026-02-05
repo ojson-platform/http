@@ -7,7 +7,7 @@ import type {
   RequestOptions,
   RequestRoute,
 } from '../types';
-import type {LogLevel, LoggerLike, LoggerMeta, LoggerOptions} from './types';
+import type {LogLevel, LoggerLike, LoggerMeta, WithLoggerOptions} from './types';
 
 import {RequestError} from '../client/request';
 
@@ -29,7 +29,7 @@ import {
 const __WithLogger__ = Symbol('WithLogger');
 
 type WithLoggerClient<CTX> = HttpClient<CTX> & {
-  [__WithLogger__]?: LoggerOptions<unknown>;
+  [__WithLogger__]?: WithLoggerOptions<unknown>;
 };
 
 type PreparedLogContext<CTX> = {
@@ -38,7 +38,7 @@ type PreparedLogContext<CTX> = {
   minLevel: LogLevel;
   maxStringLength: number;
   redaction: ReturnType<typeof normalizeRedaction>;
-  mapLevel: NonNullable<LoggerOptions<CTX>['mapLevel']>;
+  mapLevel: NonNullable<WithLoggerOptions<CTX>['mapLevel']>;
   baseFields: Record<string, unknown>;
   ctxFields?: Record<string, unknown>;
   routeStr: string;
@@ -62,7 +62,7 @@ const emitSafe = (logger: LoggerLike, level: LogLevel, event: unknown, message: 
 };
 
 const resolveEnabled = <CTX>(
-  options: LoggerOptions<CTX>,
+  options: WithLoggerOptions<CTX>,
   meta: LoggerMeta<CTX>,
   logger: LoggerLike | undefined,
 ): boolean => {
@@ -78,7 +78,7 @@ const resolveEnabled = <CTX>(
 };
 
 const resolveCtxFields = <CTX>(
-  options: LoggerOptions<CTX>,
+  options: WithLoggerOptions<CTX>,
   ctx: CTX,
 ): Record<string, unknown> | undefined => {
   if (!options.getFields) {
@@ -227,7 +227,7 @@ const logError = <CTX>(
   emitSafe(prepared.logger, level, event, 'http.error');
 };
 
-const wrapRequest = <CTX>(bound: BoundHttpClient, ctx: CTX, options: LoggerOptions<CTX>) =>
+const wrapRequest = <CTX>(bound: BoundHttpClient, ctx: CTX, options: WithLoggerOptions<CTX>) =>
   async function (this: BoundHttpClient, route: RequestRoute, requestOptions?: RequestOptions) {
     const logger = resolveLogger(options, ctx);
     const include = normalizeInclude(options.include);
@@ -308,7 +308,7 @@ const wrapRequest = <CTX>(bound: BoundHttpClient, ctx: CTX, options: LoggerOptio
 const wrapBind = <CTX>(bind: HttpClient<CTX>['bind']) =>
   function (this: WithLoggerClient<CTX>, ctx: CTX, config?: HttpConfig) {
     const bound = bind.call(this, ctx, config);
-    const options = (this[__WithLogger__] ?? {}) as LoggerOptions<CTX>;
+    const options = (this[__WithLogger__] ?? {}) as WithLoggerOptions<CTX>;
 
     return {
       ...bound,
@@ -323,12 +323,12 @@ const wrapBind = <CTX>(bind: HttpClient<CTX>['bind']) =>
  * The wrapper never throws for logger failures and never mutates request options.
  */
 export const withLogger =
-  <CTX>(options: LoggerOptions<CTX> = {}): HttpWrapper<CTX> =>
+  <CTX>(options: WithLoggerOptions<CTX> = {}): HttpWrapper<CTX> =>
   (client: HttpClient<CTX>): HttpClient<CTX> => {
     const wrapped: WithLoggerClient<CTX> = {
       ...client,
       bind: __WithLogger__ in client ? client.bind : wrapBind(client.bind),
-      [__WithLogger__]: options as LoggerOptions<unknown>,
+      [__WithLogger__]: options as WithLoggerOptions<unknown>,
     };
 
     return wrapped;

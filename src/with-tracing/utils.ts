@@ -1,16 +1,16 @@
 import type {RequestOptions} from '../types';
-import type {TracingOptions} from './types';
+import type {WithTracingOptions} from './types';
 
 import {hasHeader, mergeRequestOptions} from '../utils';
 
 export const DEFAULT_HEADER_NAME = 'x-request-id';
 
-export const getHeaderName = (opts: TracingOptions): string =>
+export const getHeaderName = (opts: WithTracingOptions): string =>
   (opts.headerName ?? DEFAULT_HEADER_NAME).toLowerCase();
 
 export const safeGetId = async (
   ctx: unknown,
-  opts: TracingOptions,
+  opts: WithTracingOptions,
 ): Promise<string | undefined> => {
   if (!opts.getId) {
     return undefined;

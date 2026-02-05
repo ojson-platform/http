@@ -1,29 +1,68 @@
 import type {RequestError} from '../client/request';
-import type {HttpWrapper, RequestRoute} from '../types';
+import type {RequestRoute} from '../types';
 
+/**
+ * Backoff strategy.
+ */
 export type BackoffStrategy = 'exp' | 'linear';
 
+/**
+ * Backoff configuration (used for number or shorthand schedules).
+ */
 export type BackoffOptions = {
+  /**
+   * Backoff strategy.
+   */
   strategy?: BackoffStrategy;
-  baseDelay?: number; // seconds
-  maxDelay?: number; // seconds
+  /**
+   * Base delay in seconds (attempt #1).
+   */
+  baseDelay?: number;
+  /**
+   * Max delay cap in seconds.
+   */
+  maxDelay?: number;
+  /**
+   * Exponential factor.
+   */
   factor?: number;
 };
 
+/**
+ * Retry budget preset.
+ */
 export type RetryBudgetPreset = 'off' | 'conservative' | 'balanced' | 'aggressive';
 
+/**
+ * Retry budget configuration.
+ */
 export type RetryBudgetConfig = {
+  /**
+   * Maximum token capacity.
+   */
   maxTokens?: number;
+  /**
+   * Tokens refilled on success.
+   */
   refillOnSuccess?: number;
+  /**
+   * Tokens consumed per retry.
+   */
   costPerRetry?: number;
 };
 
+/**
+ * Retry budget shorthand or config.
+ */
 export type RetryBudget =
   | RetryBudgetPreset
   | `budget,${number},${number},${number}`
   | RetryBudgetConfig;
 
-export type RetryPolicy = {
+/**
+ * Options for withRetry.
+ */
+export type WithRetryOptions = {
   /**
    * Retry configuration.
    *
@@ -64,5 +103,3 @@ export type RetryPolicy = {
    */
   allowNonIdempotent?: boolean;
 };
-
-export type WithRetryWrapper = (policy?: RetryPolicy) => HttpWrapper;

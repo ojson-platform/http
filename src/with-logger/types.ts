@@ -54,7 +54,7 @@ export type RedactConfig =
 /**
  * withLogger configuration.
  */
-export type LoggerOptions<CTX = unknown> = {
+export type WithLoggerOptions<CTX = unknown> = {
   /**
    * Logger implementation.
    *

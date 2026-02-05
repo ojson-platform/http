@@ -19,9 +19,9 @@ describe('Type Tests', () => {
     type Ctx = BindCtx<typeof client>;
     void (null as Expect<Equal<Ctx, {token: string}>>);
 
-    const bound = client.bind({token: 'secret'});
+    const _bound = client.bind({token: 'secret'});
     expectType<HttpClient['bind']>(client.bind);
-    expectType<Promise<unknown>>(bound.request('GET /lists'));
+    void (null as Expect<Equal<ReturnType<typeof _bound.request>, Promise<unknown>>>);
   });
 
   it('infers ctx as an intersection across wrappers', () => {

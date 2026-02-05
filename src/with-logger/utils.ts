@@ -1,5 +1,5 @@
 import type {EndpointResult, HeadersMap, RequestOptions, RequestRoute} from '../types';
-import type {LogLevel, LoggerLike, LoggerOptions, RedactConfig} from './types';
+import type {LogLevel, LoggerLike, RedactConfig, WithLoggerOptions} from './types';
 
 import {normalizeHeaders} from '../utils';
 
@@ -66,7 +66,10 @@ export const defaultMapLevel = (input: {
   return 'error' as const;
 };
 
-export const resolveLogger = <CTX>(opts: LoggerOptions<CTX>, ctx: CTX): LoggerLike | undefined => {
+export const resolveLogger = <CTX>(
+  opts: WithLoggerOptions<CTX>,
+  ctx: CTX,
+): LoggerLike | undefined => {
   if (!opts.logger) {
     return undefined;
   }
@@ -79,8 +82,8 @@ export const resolveLogger = <CTX>(opts: LoggerOptions<CTX>, ctx: CTX): LoggerLi
 };
 
 export const normalizeInclude = (
-  include: LoggerOptions['include'] | undefined,
-): Required<NonNullable<LoggerOptions['include']>> => {
+  include: WithLoggerOptions['include'] | undefined,
+): Required<NonNullable<WithLoggerOptions['include']>> => {
   return {
     requestStart: include?.requestStart ?? false,
     responseSuccess: include?.responseSuccess ?? true,

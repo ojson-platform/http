@@ -5,7 +5,7 @@ import type {
   RetryBudget,
   RetryBudgetConfig,
   RetryBudgetPreset,
-  RetryPolicy,
+  WithRetryOptions,
 } from './types';
 
 const DEFAULT_JITTER = 0.2;
@@ -99,8 +99,8 @@ export const buildBackoffScheduleSeconds = (count: number, options?: BackoffOpti
 };
 
 export const resolveRetriesScheduleSeconds = (
-  policy: RetryPolicy,
-  requestRetries?: RetryPolicy['retries'],
+  policy: WithRetryOptions,
+  requestRetries?: WithRetryOptions['retries'],
 ): number[] => {
   const retries = requestRetries ?? policy.retries;
   if (!retries) {
@@ -131,7 +131,7 @@ export const resolveRetriesScheduleSeconds = (
 export const applyJitterSeconds = (
   delaySeconds: number,
   attempt: number,
-  jitter: RetryPolicy['jitter'] | undefined,
+  jitter: WithRetryOptions['jitter'] | undefined,
 ): number => {
   if (delaySeconds <= 0) {
     return 0;

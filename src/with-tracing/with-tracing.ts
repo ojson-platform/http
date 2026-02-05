@@ -6,7 +6,7 @@ import type {
   RequestOptions,
   RequestRoute,
 } from '../types';
-import type {TracingOptions} from './types';
+import type {WithTracingOptions} from './types';
 
 import {mergeRequestOptions} from '../utils';
 
@@ -15,10 +15,10 @@ import {getHeaderName, safeGetId, withCorrelationIdHeader} from './utils';
 const __WithTracing__ = Symbol('WithTracing');
 
 type WithTracingClient = HttpClient & {
-  [__WithTracing__]?: TracingOptions;
+  [__WithTracing__]?: WithTracingOptions;
 };
 
-const wrapRequest = (request: BoundHttpClient['request'], ctx: unknown, opts: TracingOptions) =>
+const wrapRequest = (request: BoundHttpClient['request'], ctx: unknown, opts: WithTracingOptions) =>
   async function (this: BoundHttpClient, route: RequestRoute, requestOptions?: RequestOptions) {
     const headerName = getHeaderName(opts);
     const id = await safeGetId(ctx, opts);
@@ -48,7 +48,7 @@ const wrapBind = (bind: HttpClient['bind']) =>
  * The wrapper never overwrites an existing correlation header.
  */
 export const withTracing =
-  (opts: TracingOptions = {}): HttpWrapper =>
+  (opts: WithTracingOptions = {}): HttpWrapper =>
   (client: HttpClient): HttpClient => {
     const wrapped: WithTracingClient = {
       ...client,

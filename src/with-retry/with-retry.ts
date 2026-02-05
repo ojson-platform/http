@@ -6,7 +6,7 @@ import type {
   RequestOptions,
   RequestRoute,
 } from '../types';
-import type {RetryBudgetConfig, RetryPolicy} from './types';
+import type {RetryBudgetConfig, WithRetryOptions} from './types';
 
 import {RequestError} from '../client/request';
 
@@ -31,7 +31,7 @@ type BudgetState = {
 };
 
 type WithRetryClient = HttpClient & {
-  [__WithRetry__]?: RetryPolicy;
+  [__WithRetry__]?: WithRetryOptions;
   [__WithRetryBudget__]?: BudgetState;
 };
 
@@ -81,7 +81,7 @@ const consumeBudgetForRetry = (budget: BudgetState | undefined): boolean => {
 };
 
 const shouldRetryError = (
-  policy: RetryPolicy,
+  policy: WithRetryOptions,
   error: RequestError,
   meta: {route: RequestRoute; attempt: number},
 ) => {
@@ -104,7 +104,7 @@ const shouldRetryError = (
 
 const wrapRequest = (
   request: BoundHttpClient['request'],
-  policy: RetryPolicy,
+  policy: WithRetryOptions,
   budgetState?: BudgetState,
 ) =>
   async function (this: BoundHttpClient, route: RequestRoute, options?: RequestOptions) {
@@ -190,7 +190,7 @@ const wrapBind = (bind: HttpClient['bind']) =>
  * - Optional token-bucket retry budget shared per wrapper instance.
  */
 export const withRetry =
-  (policy: RetryPolicy = {}): HttpWrapper =>
+  (policy: WithRetryOptions = {}): HttpWrapper =>
   (client: HttpClient): HttpClient => {
     const wrapped: WithRetryClient = {
       ...client,

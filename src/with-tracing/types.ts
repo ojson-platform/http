@@ -1,8 +1,12 @@
-import type {HttpWrapper} from '../types';
-
+/**
+ * Result type for getId resolvers.
+ */
 export type GetIdResult = string | null | undefined;
 
-export type TracingOptions = {
+/**
+ * Options for withTracing.
+ */
+export type WithTracingOptions = {
   /**
    * Correlation header name.
    * Default: `x-request-id`
@@ -17,9 +21,3 @@ export type TracingOptions = {
    */
   getId?: (ctx: unknown) => GetIdResult | Promise<GetIdResult>;
 };
-
-export type WithTracingState = {
-  opts: TracingOptions;
-};
-
-export type WithTracingWrapper = (opts?: TracingOptions) => HttpWrapper;
