@@ -110,13 +110,13 @@ export const normalizeRedaction = (redact: RedactConfig | undefined): Redaction 
 
   let headerKeys: Set<string> | null = null;
   const headerRule = redact?.headers;
-  if (headerRule !== undefined) {
+  if (headerRule === undefined) {
+    headerKeys = new Set<string>();
+    DEFAULT_REDACT_HEADERS.forEach(name => headerKeys?.add(name));
+  } else {
     headerKeys = new Set<string>();
     const list = headerRule === true ? [...DEFAULT_REDACT_HEADERS] : headerRule;
     list.forEach(name => headerKeys?.add(name.toLowerCase()));
-  } else {
-    headerKeys = new Set<string>();
-    DEFAULT_REDACT_HEADERS.forEach(name => headerKeys?.add(name));
   }
 
   const paths = redact?.paths ?? [];
@@ -190,7 +190,7 @@ export const sanitizeForLog = (
   }
 
   if (typeof value !== 'object') {
-    return String(value);
+    return value === null ? 'null' : String(value as string | number | boolean | symbol);
   }
 
   const existing = seen.get(value);
@@ -242,7 +242,7 @@ const setByPath = (root: unknown, path: string, replace: string) => {
   }
 
   const record = cursor as Record<string, unknown>;
-  if (Object.prototype.hasOwnProperty.call(record, last)) {
+  if (Object.hasOwn(record, last)) {
     record[last] = replace;
   }
 };

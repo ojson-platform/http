@@ -85,7 +85,8 @@ export const parseRetriesShorthand = (
 };
 
 export const buildBackoffScheduleSeconds = (count: number, options?: BackoffOptions): number[] => {
-  const resolved = {...DEFAULT_BACKOFF, ...(options ?? {})};
+  const resolved =
+    options != null ? {...DEFAULT_BACKOFF, ...options} : {...DEFAULT_BACKOFF};
   const base = resolved.baseDelay;
   const max = resolved.maxDelay;
   const factor = resolved.factor;
@@ -146,7 +147,7 @@ export const applyJitterSeconds = (
     return next;
   }
 
-  const ratio = jitter === undefined ? DEFAULT_JITTER : jitter;
+  const ratio = jitter ?? DEFAULT_JITTER;
   if (!Number.isFinite(ratio) || ratio <= 0) {
     return delaySeconds;
   }
@@ -207,7 +208,7 @@ export const parseBudget = (budget: RetryBudget | undefined): RetryBudgetConfig 
         .map(p => p.trim())
         .filter(Boolean);
       if (parts.length !== 4) {
-        throw new Error(`Invalid budget shorthand "${budget}".`);
+        throw new TypeError(`Invalid budget shorthand "${budget}".`);
       }
       const maxTokens = Number.parseFloat(parts[1]);
       const refillOnSuccess = Number.parseFloat(parts[2]);
@@ -217,12 +218,12 @@ export const parseBudget = (budget: RetryBudget | undefined): RetryBudgetConfig 
         !Number.isFinite(refillOnSuccess) ||
         !Number.isFinite(costPerRetry)
       ) {
-        throw new Error(`Invalid budget shorthand "${budget}".`);
+        throw new TypeError(`Invalid budget shorthand "${budget}".`);
       }
       return {maxTokens, refillOnSuccess, costPerRetry};
     }
 
-    throw new Error(`Invalid budget preset "${budget}".`);
+    throw new TypeError(`Invalid budget preset "${budget}".`);
   }
 
   return budget;

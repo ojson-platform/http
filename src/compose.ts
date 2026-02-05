@@ -44,7 +44,7 @@ export const compose = <W extends readonly HttpWrapper<unknown>[]>(
 
     for (const wrapper of wrappers) {
       const apply = wrapper as HttpWrapper<ComposeCtx<W>>;
-      client = apply(client) as HttpClient<ComposeCtx<W>>;
+      client = apply(client);
     }
 
     return client;

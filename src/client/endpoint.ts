@@ -45,8 +45,8 @@ const applyParams = (url: string, params?: Record<string, string | number>): str
     return url;
   }
 
-  const replaced = url.replace(/\{([^}]+)\}/g, (match, key) => {
-    if (!Object.prototype.hasOwnProperty.call(params, key)) {
+  const replaced = url.replaceAll(/\{([^}]+)\}/g, (_match: string, key: string) => {
+    if (!Object.hasOwn(params, key)) {
       throw new Error(`Missing param "${key}" for url "${url}".`);
     }
 

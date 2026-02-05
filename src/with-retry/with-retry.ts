@@ -102,6 +102,30 @@ const shouldRetryError = (
   return status >= 500;
 };
 
+/** Returns delay in ms if we should retry, null if caller should throw. */
+const computeRetryDelayMs = (
+  error: RequestError,
+  policy: WithRetryOptions,
+  budgetState: BudgetState | undefined,
+  route: RequestRoute,
+  attempt: number,
+  scheduleSeconds: number[],
+): number | null => {
+  if (!shouldRetryError(policy, error, {route, attempt})) {
+    return null;
+  }
+  if (attempt >= scheduleSeconds.length || !consumeBudgetForRetry(budgetState)) {
+    return null;
+  }
+  const retryAfterSeconds =
+    error.status === 429 || error.status === 503
+      ? parseRetryAfterSeconds(error.response?.headers)
+      : undefined;
+  const baseDelay = retryAfterSeconds ?? scheduleSeconds[attempt];
+  const delaySeconds = applyJitterSeconds(baseDelay, attempt + 1, policy.jitter);
+  return Math.round(delaySeconds * 1000);
+};
+
 const wrapRequest = (
   request: BoundHttpClient['request'],
   policy: WithRetryOptions,
@@ -129,38 +153,21 @@ const wrapRequest = (
         if (isAbortError(error)) {
           throw error;
         }
-
         lastError = error;
         if (!(error instanceof RequestError)) {
           throw error;
         }
-
-        const shouldRetry = shouldRetryError(policy, error, {route, attempt});
-        if (!shouldRetry) {
+        const delayMs = computeRetryDelayMs(
+          error,
+          policy,
+          budgetState,
+          route,
+          attempt,
+          scheduleSeconds,
+        );
+        if (delayMs === null) {
           throw error;
         }
-
-        // no more retries left
-        if (attempt >= scheduleSeconds.length) {
-          throw error;
-        }
-
-        if (!consumeBudgetForRetry(budgetState)) {
-          throw error;
-        }
-
-        // Retry-After support for 429/503
-        const retryAfterSeconds =
-          error.status === 429 || error.status === 503
-            ? parseRetryAfterSeconds(error.response?.headers)
-            : undefined;
-
-        const baseDelay = retryAfterSeconds ?? scheduleSeconds[attempt];
-        const delaySeconds = applyJitterSeconds(baseDelay, attempt + 1, policy.jitter);
-        const delayMs = Math.round(delaySeconds * 1000);
-
-        // If a deadline exists on ctx and withTimeout is NOT present, we still avoid waiting forever:
-        // withTimeout will fail-fast on next attempt; here we just respect abort signals.
         await sleepMs(delayMs, options?.signal);
       }
     }

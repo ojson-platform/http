@@ -119,7 +119,6 @@ const logRequestStart = <CTX>(
 
   const payload: Record<string, unknown> = {
     ...prepared.baseFields,
-    ...(prepared.ctxFields ?? {}),
     event: 'http.request',
     route: prepared.routeStr,
     method: prepared.method,
@@ -131,6 +130,9 @@ const logRequestStart = <CTX>(
       body: prepared.requestBody,
     },
   };
+  if (prepared.ctxFields != null) {
+    Object.assign(payload, prepared.ctxFields);
+  }
 
   const event = redactEvent(payload, prepared);
   emitSafe(prepared.logger, level, event, 'http.request');
@@ -157,7 +159,6 @@ const logResponseSuccess = <CTX>(
 
   const payload: Record<string, unknown> = {
     ...prepared.baseFields,
-    ...(prepared.ctxFields ?? {}),
     event: 'http.response',
     route: prepared.routeStr,
     method: prepared.method,
@@ -173,6 +174,9 @@ const logResponseSuccess = <CTX>(
       data: responseBody,
     },
   };
+  if (prepared.ctxFields != null) {
+    Object.assign(payload, prepared.ctxFields);
+  }
 
   const event = redactEvent(payload, prepared);
   emitSafe(prepared.logger, level, event, 'http.response');
@@ -200,7 +204,6 @@ const logError = <CTX>(
 
   const payload: Record<string, unknown> = {
     ...prepared.baseFields,
-    ...(prepared.ctxFields ?? {}),
     event: 'http.error',
     route: prepared.routeStr,
     method: prepared.method,
@@ -222,6 +225,9 @@ const logError = <CTX>(
       data: input.responseData,
     },
   };
+  if (prepared.ctxFields != null) {
+    Object.assign(payload, prepared.ctxFields);
+  }
 
   const event = redactEvent(payload, prepared);
   emitSafe(prepared.logger, level, event, 'http.error');

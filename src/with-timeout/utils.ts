@@ -67,7 +67,7 @@ export const createAbortError = (message: string): Error => {
   return error;
 };
 
-export const clampMin = (value: number, min: number): number => (value < min ? min : value);
+export const clampMin = (value: number, min: number): number => Math.max(value, min);
 
 export const computeTimeoutMs = (
   ctx: unknown,

@@ -33,7 +33,7 @@ const appendHeaderValue = (acc: HeadersMap, key: string, value: HeaderValue): vo
   const nextValues = Array.isArray(value) ? value : [value];
   const existing = acc[key];
   if (existing === undefined) {
-    acc[key] = Array.isArray(value) ? value : value;
+    acc[key] = value;
     return;
   }
 
@@ -64,7 +64,7 @@ const normalizeHeaders = (headers?: HeadersInput): HeadersMap => {
  */
 const hasHeader = (headers: HeadersInput | undefined, name: string): boolean => {
   const normalized = normalizeHeaders(headers);
-  return Object.prototype.hasOwnProperty.call(normalized, name.toLowerCase());
+  return Object.hasOwn(normalized, name.toLowerCase());
 };
 
 /**
@@ -117,7 +117,7 @@ const mergeDeep = <T>(base: T, next: T): T => {
  * Merge headers preserving last-wins behavior.
  */
 const mergeHeaders = (base?: HeadersMap, next?: HeadersMap): HeadersMap => {
-  const merged: HeadersMap = {...(base ?? {})};
+  const merged: HeadersMap = base != null ? {...base} : {};
   if (!next) {
     return merged;
   }
@@ -151,7 +151,7 @@ const normalizeRequestOptions = (options?: RequestOptions | EndpointOptions): Re
  */
 const mergeRequestOptions = (base: RequestOptions, next?: RequestOptions): RequestOptions => {
   const normalizedNext = normalizeRequestOptions(next);
-  const merged = mergeDeep(base, normalizedNext) as RequestOptions;
+  const merged = mergeDeep(base, normalizedNext);
   merged.headers = mergeHeaders(
     normalizeHeaders(base.headers),
     normalizeHeaders(normalizedNext.headers),
