@@ -1,1 +1,22 @@
-{"compilerOptions":{"target":"ES2020","module":"ES2020","moduleResolution":"Bundler","declaration":true,"declarationMap":true,"sourceMap":true,"outDir":"build","rootDir":"src","strict":true,"skipLibCheck":true,"lib":["ES2020","ES2021","ES2022","DOM"]},"include":["src/**/*.ts"],"exclude":["**/*.spec.ts","**/*.test.ts"]}
+{
+  "extends": "@ojson/infra/tsconfig/base",
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "moduleResolution": "Node",
+    "outDir": "build",
+    "rootDir": "src",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "lib": ["ES2020", "ES2021", "ES2022", "DOM"],
+    "plugins": [
+      {
+        "transform": "./node_modules/@ojson/infra/lib/transformer.mjs",
+        "after": true
+      }
+    ]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["**/*.spec.ts", "**/*.test.ts"]
+}
